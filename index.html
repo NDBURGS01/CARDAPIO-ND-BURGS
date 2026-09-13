@@ -1,10 +1,10 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260913-R35">
+<meta name="nd-site-version" content="20260912-R34">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260913-R35";
+  const ND_SITE_VERSION = "20260912-R34";
   const KEY = "ndburgs_site_version";
   try {
     const old = localStorage.getItem(KEY);
@@ -1301,7 +1301,7 @@ ESCOLHER SABOR
 
 <div class="produto">
 <img class="produto-imagem" loading="lazy" decoding="async" src="https://i.ibb.co/WvRv23Y5/milk-a-ai.jpg" alt="MILKSHAKE DE AÇAÍ">
-<h3>MILKSHAKE DE AÇAÍ</h3>
+<h3>DE AÇAÍ</h3>
 <p>Milkshake de açaí.</p>
 <div class="preco">A partir de R$ 15,00</div>
 <button class="btn btn-add" onclick="abrirPersonalizacao('milkAcai')">ESCOLHER</button>
@@ -1356,8 +1356,8 @@ ESCOLHER SABOR
 </div>
 
 <div class="produto">
-<img src="https://i.ibb.co/ZRRHG3pG/fanta-uva-2.png" alt="fanta-uva-2" border="0" />
 <h3>FANTA UVA LATA</h3>
+<img src="https://i.ibb.co/ZRRHG3pG/fanta-uva-2.png" alt="fanta-uva-2" border="0" />
 <p>Refrigerante.</p>
 <div class="preco">R$ 6,00</div>
 <button class="btn btn-add" onclick="adicionar('FANTA UVA LATA',6)">ADICIONAR</button>
@@ -1372,7 +1372,6 @@ ESCOLHER SABOR
 </div>
 
 <div class="produto">
-<img src="https://i.ibb.co/HD1KJdqv/Chat-GPT-Image-13-09-2026-03-31-24.png" alt="Chat GPT Image 13 09 2026 03 31 24" border="0">
 <h3>GUARANA LATA</h3>
 <p>Refrigerante.</p>
 <div class="preco">R$ 6,00</div>
@@ -11118,179 +11117,5 @@ body.nd-cart-modal-open #ndFxCartbar,
   else bind();
   window.addEventListener('load',bind,{once:true});
   window.ND_R42={fixSearch:forceSearchState};
-})();
-</script>
-
-
-<!-- =========================================================
-     ND BURGS R35 — LIMPEZA E MOBILE 3 COLUNAS
-     Melhorias aplicadas nesta rodada:
-     1) núcleo final de estabilidade/limpeza visual sem criar
-        novos observadores ou rolagens automáticas;
-     2) grade mobile padronizada em 3 produtos por linha,
-        inclusive PASTÉIS, com cards compactos e legíveis.
-     ========================================================= -->
-<style id="nd-r35-clean-mobile-core">
-/* 1 — BASE LIMPA / ESTÁVEL */
-html,body{
-  width:100%;
-  max-width:100%;
-  overflow-x:hidden!important;
-  overscroll-behavior-x:none!important;
-}
-html{scroll-behavior:auto!important;}
-body{margin:0;}
-*,*::before,*::after{box-sizing:border-box;}
-img{max-width:100%;}
-
-/* Remove espaços/estouros que costumam criar deslocamento lateral. */
-.container,main,header,footer,section,article,.produto,.produtos{
-  min-width:0!important;
-}
-.produtos{
-  width:100%!important;
-  max-width:100%!important;
-}
-
-/* 2 — MOBILE: 3 PRODUTOS POR LINHA */
-@media (max-width:600px){
-  .produtos,
-  #pasteis .produtos,
-  #acai .produtos,
-  #combos .produtos,
-  #lanches .produtos,
-  #sobremesas .produtos,
-  #bebidas .produtos{
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:8px!important;
-    width:100%!important;
-  }
-
-  .produto{
-    width:100%!important;
-    min-width:0!important;
-    max-width:none!important;
-    overflow:hidden!important;
-    border-radius:12px!important;
-  }
-
-  .produto img,
-  .produto .produto-imagem{
-    width:100%!important;
-    height:auto!important;
-    aspect-ratio:1/1!important;
-    object-fit:cover!important;
-    display:block!important;
-  }
-
-  .produto h3{
-    font-size:11px!important;
-    line-height:1.12!important;
-    margin:7px 6px 3px!important;
-    min-height:25px!important;
-    display:-webkit-box!important;
-    -webkit-line-clamp:2!important;
-    -webkit-box-orient:vertical!important;
-    overflow:hidden!important;
-  }
-
-  .produto p{
-    font-size:9.5px!important;
-    line-height:1.2!important;
-    margin:0 6px 5px!important;
-    min-height:23px!important;
-    display:-webkit-box!important;
-    -webkit-line-clamp:2!important;
-    -webkit-box-orient:vertical!important;
-    overflow:hidden!important;
-  }
-
-  .produto .preco,
-  .produto .price,
-  .produto .valor,
-  .produto strong{
-    font-size:11px!important;
-  }
-
-  .produto button,
-  .produto .btn-add,
-  .produto .nd-fx-add,
-  .produto .nd-r3-add{
-    width:calc(100% - 10px)!important;
-    min-height:34px!important;
-    margin:5px!important;
-    padding:7px 3px!important;
-    font-size:9.5px!important;
-    line-height:1.05!important;
-    border-radius:9px!important;
-  }
-
-  /* Pastéis também entram na regra de 3 colunas. */
-  #pasteis .produto-imagem{height:auto!important;}
-  #pasteis .produto h3{font-size:11px!important;}
-  #pasteis .produto p{min-height:23px!important;}
-}
-
-/* Telas muito estreitas: mantém 3 colunas sem esmagar o texto. */
-@media (max-width:370px){
-  .produtos,
-  #pasteis .produtos{
-    gap:6px!important;
-  }
-  .produto h3{font-size:10px!important;margin-left:4px!important;margin-right:4px!important;}
-  .produto p{font-size:9px!important;margin-left:4px!important;margin-right:4px!important;}
-  .produto button,.produto .btn-add,.produto .nd-fx-add,.produto .nd-r3-add{
-    width:calc(100% - 8px)!important;
-    margin:4px!important;
-    min-height:32px!important;
-    font-size:9px!important;
-  }
-}
-
-/* Desktop continua com a grade original do site. */
-@media (min-width:601px){
-  .produtos{width:100%;}
-}
-</style>
-
-<script id="nd-r35-clean-mobile-core-js">
-(function(){
-  'use strict';
-  if(window.__NDBURGS_R35_CORE__) return;
-  window.__NDBURGS_R35_CORE__=true;
-
-  /* Impede que o navegador faça scroll inesperado por foco automático.
-     Não bloqueia o scroll normal do usuário. */
-  function stabilizeViewport(){
-    try{
-      if(window.scrollX!==0) window.scrollTo(0,window.scrollY);
-      document.documentElement.scrollLeft=0;
-      document.body.scrollLeft=0;
-    }catch(e){}
-  }
-
-  function normalizeMobileGrids(){
-    if(window.innerWidth>600) return;
-    document.querySelectorAll('.produtos').forEach(function(grid){
-      grid.style.setProperty('grid-template-columns','repeat(3,minmax(0,1fr))','important');
-      grid.style.setProperty('gap','8px','important');
-    });
-  }
-
-  function init(){
-    normalizeMobileGrids();
-    stabilizeViewport();
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',init,{once:true});
-  }else init();
-
-  window.addEventListener('resize',normalizeMobileGrids,{passive:true});
-  window.addEventListener('load',function(){
-    normalizeMobileGrids();
-    stabilizeViewport();
-  },{once:true,passive:true});
 })();
 </script>
