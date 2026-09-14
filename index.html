@@ -6693,8 +6693,8 @@ function welcomeGate(){
 }
 function refresh(){patchCart();setupAddressInputs();syncTotals();decorateCheckout();decorateModalCart();welcomeGate();forceCart();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setTimeout(refresh,250);setTimeout(refresh,1000)});else{refresh();setTimeout(refresh,250);setTimeout(refresh,1000)}
-// Atualização leve quando o carrinho/checkout muda, sem setInterval agressivo.
-let timer=0;const obs=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{forceCart();syncTotals();decorateModalCart()},80)});obs.observe(document.body,{subtree:true,childList:true,characterData:true});
+// R45: removido observer global do body. A atualização inicial e os eventos
+// existentes continuam ativos sem criar ciclos de renderização.
 })();
 </script>
 
@@ -8985,13 +8985,9 @@ if(document.readyState==='loading'){
   }
 
   /* Observa somente alterações de estrutura, sem timer contínuo pesado. */
-  const observer=new MutationObserver(()=>{
-    removeDaily();
-    placeUva();
-    applyGenericImages();
-    patchFinish();
-  });
-  if(document.body)observer.observe(document.body,{childList:true,subtree:true});
+  /* R26/R28: removido observer global.
+     placeUva() usa insertAdjacentElement e, quando observado no body,
+     a própria movimentação dispara o observer novamente em loop. */
 
 })();
 </script>
@@ -9353,8 +9349,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  const obs=new MutationObserver(init);
-  obs.observe(document.body,{childList:true,subtree:true});
+  /* R27: inicialização limitada; não observar o body continuamente. */
   setTimeout(init,300);setTimeout(init,1000);setTimeout(init,2000);
 })();
 </script>
@@ -9592,11 +9587,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     setTimeout(setupMobileCartButton,1000);
 
     /* Observa elementos criados pelos módulos antigos do site. */
-    const observer=new MutationObserver(function(){
-      setupDynamicSearch();
-      setupMobileCartButton();
-    });
-    observer.observe(document.body,{childList:true,subtree:true});
+    /* R31: não observar o body continuamente. O site já possui inicialização
+       + timers curtos; observar o body aqui criava uma cascata de callbacks. */
   }
 
   if(document.readyState==='loading'){
@@ -9954,7 +9946,7 @@ function bind(){
   });
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
-const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,{childList:true,subtree:true});
+/* Combo safety: sem observer global; bind inicial + delegação original. */
 })();
 </script>
 
@@ -9967,10 +9959,11 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
     if(actions.length<2)return;
     let bar=cont.querySelector('#ndR42CartActions');
     if(!bar){bar=document.createElement('div');bar.id='ndR42CartActions';bar.style.cssText='display:flex;flex-direction:column;gap:2px;order:-1000;margin-bottom:10px';cont.prepend(bar)}
-    actions.forEach(b=>bar.appendChild(b));
+    actions.forEach(b=>{if(b.parentNode!==bar)bar.appendChild(b)});
   }
   document.addEventListener('DOMContentLoaded',moveActionsTop);
-  const mo=new MutationObserver(moveActionsTop); mo.observe(document.body,{childList:true,subtree:true});
+  /* R42: não observar o body. moveActionsTop() é idempotente e é chamado
+     no DOMContentLoaded/load; observer global causava reexecução após appendChild. */
   window.addEventListener('load',moveActionsTop);
 })();
 </script>
@@ -10150,10 +10143,8 @@ header .logo{
     },true);
 
     /* Captura botões criados dinamicamente. */
-    const obs=new MutationObserver(()=>{
-      cleanAllBuyButtons();
-    });
-    obs.observe(document.body,{childList:true,subtree:true});
+    /* R28: removido observer global do body para evitar ciclo de mutações.
+       A limpeza inicial + chamadas temporizadas continuam ativas. */
 
     cleanAllBuyButtons();
     setTimeout(cleanAllBuyButtons,300);
@@ -10588,7 +10579,7 @@ function refresh(){
    if(status)status.textContent='Escolha os itens abaixo';
  });
 }
-function init(){const c=document.getElementById('r11ComboContent');if(!c)return;c.addEventListener('change',()=>setTimeout(refresh,0));new MutationObserver(()=>refresh()).observe(c,{childList:true,subtree:true});refresh()}
+function init(){const c=document.getElementById('r11ComboContent');if(!c)return;c.addEventListener('change',()=>setTimeout(refresh,0));refresh()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else setTimeout(init,0);
 })();
 </script>
@@ -11225,14 +11216,9 @@ document.addEventListener('click',function(e){
 },true);
 
 /* O modal de finalização e o portão de envio sempre escondem o carrinho. */
-const mo=new MutationObserver(()=>{
-  prepareButtons();
-  syncCartVisibility();
-});
 function init(){
   prepareButtons();
   syncCartVisibility();
-  mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
   [300,800,1500,3000].forEach(ms=>setTimeout(()=>{prepareButtons();syncCartVisibility()},ms));
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
@@ -11285,5 +11271,13 @@ function boot(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+<!-- ND BURGS R45 STABILITY HOTFIX 2026-09-14
+     Corrige travamento causado por MutationObserver globais em camadas acumuladas.
+     Mantém as funções e os timers de inicialização, mas evita loops de mutação.
+-->
+<style id="nd-r45-hotfix">
+  /* Evita efeitos de composição caros durante carregamento inicial */
+  html{overflow-x:hidden}
+</style>
 </body>
 </html>
