@@ -1441,10 +1441,10 @@ ESCOLHER SABOR
 </div>
 </section>
 
-<section id="adicionais" class="categoria">
+<section id="TURBINE SEU LANCHE" class="categoria">
 
 <div class="categoria-titulo">
-➕ ADICIONAIS
+➕ TURBINE SEU LANCHE
 </div>
 
 <div class="produtos">
@@ -7074,7 +7074,7 @@ function buildBest(){if(document.getElementById('ndAutoBest'))return;const h=doc
 function renderBest(){
  const s=document.getElementById('ndAutoBest');if(!s)return;
  const grid=s.querySelector('.r11-best-grid');
- const cards=[...document.querySelectorAll('.produto')].map(productInfo).filter(Boolean).filter(x=>x.img&&!/^ARTESANAL /.test(x.name)&&!['FATIA QUEIJO CHEDDAR EXTRA','HAMBURGUER EXTRA ARTESANAL','HAMBURGUER EXTRA TRADICIONAL','BACON','ADICIONAL BACON','POTINHO BARBECUE','POTINHO MAIONESE VERDE','POTINHO CHEDDAR','POTINHO MAIONESE ARTESANAL','ADICIONAL CHEDDAR'].includes(norm(x.name))&&x.btn.closest('.categoria')?.id!=='adicionais');
+ const cards=[...document.querySelectorAll('.produto')].map(productInfo).filter(Boolean).filter(x=>x.img&&!/^ARTESANAL /.test(x.name)&&!['FATIA QUEIJO CHEDDAR EXTRA','HAMBURGUER EXTRA ARTESANAL','HAMBURGUER EXTRA TRADICIONAL','BACON','ADICIONAL BACON','POTINHO BARBECUE','POTINHO MAIONESE VERDE','POTINHO CHEDDAR','POTINHO MAIONESE ARTESANAL','ADICIONAL CHEDDAR'].includes(norm(x.name))&&x.btn.closest('.categoria')?.id!=='turbine seu lanche');
  if(!cards.length)return;
  const key=new Date().toLocaleDateString('en-CA');
  let seed=0;for(let i=0;i<key.length;i++)seed=(seed*31+key.charCodeAt(i))>>>0;
@@ -8081,7 +8081,7 @@ function productCards(){
     if(!name||!price||!btn)return null;
     const n=norm(name);
     /* Não usar itens técnicos/adicionais como destaque do dia. */
-    const blocked=['ADICIONAL','FATIA DE QUEIJO','MOLHO','KETCHUP','MOSTARDA','MAIONESE','CATUPIRY','NUTELLA','NINHO','KITKAT'];
+    const blocked=['TURBINE SEU LANCHE','FATIA DE QUEIJO','MOLHO','KETCHUP','MOSTARDA','MAIONESE','CATUPIRY','NUTELLA','NINHO','KITKAT'];
     if(blocked.some(x=>n.includes(x)))return null;
     return {card,name,price,priceText:priceEl?.textContent?.trim()||money(price),btn,img};
   }).filter(Boolean);
