@@ -1,10 +1,11 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
 <meta name="nd-site-version" content="20260914-R46">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260914-R45";
+  const ND_SITE_VERSION = "20260914-R46";
   const KEY = "ndburgs_site_version";
   try {
     const old = localStorage.getItem(KEY);
@@ -10664,7 +10665,7 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
     const onclick = (el.getAttribute('onclick') || '').toLowerCase();
 
     const looksLikeAdd =
-      /\b(comprar|adicionar|add|+)\b/.test(text) ||
+      /\b(comprar|adicionar|add|\+)\b/.test(text) ||
       /adicionar|addtocart|additem|comprar|carrinho/.test(onclick);
 
     if(!looksLikeAdd) return;
@@ -10689,7 +10690,7 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
     const text = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim().toLowerCase();
     const onclick = (el.getAttribute('onclick') || '').toLowerCase();
     const looksLikeAdd =
-      /\b(comprar|adicionar|add|+)\b/.test(text) ||
+      /\b(comprar|adicionar|add|\+)\b/.test(text) ||
       /adicionar|addtocart|additem|comprar/.test(onclick);
 
     if(!looksLikeAdd) return;
@@ -10848,8 +10849,6 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
   });
 })();
 </script>
-
-</body>
 
 <!-- =========================================================
      ND BURGS — R28 / AJUSTES SOLICITADOS
@@ -11874,4 +11873,6 @@ body.nd-cart-modal-open #ndFxCartbar,
   setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3000);
 })();
 </script>
+
+</body>
 </html>
