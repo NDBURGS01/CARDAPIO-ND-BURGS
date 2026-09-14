@@ -11542,5 +11542,321 @@ body.nd-cart-modal-open #ndFxCartbar,
 <script id="nd-r5-cart-js">
 (function(){'use strict';const META='ndburgs_r5_notes';function meta(){try{return JSON.parse(localStorage.getItem(META)||'{}')}catch(e){return{}}}function save(m){try{localStorage.setItem(META,JSON.stringify(m))}catch(e){}}function cart(){for(const k of ['carrinho','cart','itensCarrinho','pedido','itens'])if(Array.isArray(window[k]))return window[k];return null}function q(i){return Number(i.quantidade??i.qty??i.qtd??1)||1}function price(i){return Number(i.preco??i.price??i.valor??0)||0}function setq(i,n){if('quantidade'in i)i.quantidade=n;else if('qty'in i)i.qty=n;else if('qtd'in i)i.qtd=n;else i.quantidade=n}function refresh(){for(const f of ['atualizarCarrinho','renderCarrinho','atualizarCarrinhoFlutuante','salvarCarrinho','salvarCarrinhoLocal'])try{if(typeof window[f]==='function')window[f]()}catch(e){}setTimeout(inject,100)}function inject(){const c=cart();if(!c||!c.length)return;const modal=document.querySelector('#carrinhoModal,#modalCarrinho,#carrinhoConteudo,.carrinho-conteudo,.carrinho');if(!modal)return;let p=document.querySelector('#ndR5-progress');if(!p){p=document.createElement('div');p.id='ndR5-progress';p.innerHTML='<b>Seu pedido está quase completo</b><div id="ndR5-progress-bar"><div id="ndR5-progress-fill"></div></div>';modal.prepend(p)}const total=c.reduce((a,i)=>a+price(i)*q(i),0);const fill=document.querySelector('#ndR5-progress-fill');if(fill)fill.style.width=Math.min(100,total/50*100)+'%';const nodes=[...modal.querySelectorAll('*')];c.forEach((item,idx)=>{const name=String(item.nome??item.titulo??item.name??item.produto??'').trim().toLowerCase();if(!name)return;const el=nodes.find(x=>x.children.length<8&&(x.textContent||'').trim().toLowerCase().includes(name)&&!x.querySelector('.ndR5-tools'));if(!el)return;const d=document.createElement('div');d.className='ndR5-tools';d.innerHTML='<div class="ndR5-qty"><button type="button" data-m>−</button><span>'+q(item)+'</span><button type="button" data-p>+</button></div><button type="button" class="ndR5-remove">REMOVER</button><input class="ndR5-note" maxlength="120" placeholder="Observação deste item (opcional)">';d.querySelector('[data-m]').onclick=e=>{e.preventDefault();e.stopPropagation();let n=q(item)-1;if(n<=0)c.splice(idx,1);else setq(item,n);refresh()};d.querySelector('[data-p]').onclick=e=>{e.preventDefault();e.stopPropagation();setq(item,q(item)+1);refresh()};d.querySelector('.ndR5-remove').onclick=e=>{e.preventDefault();e.stopPropagation();c.splice(idx,1);refresh()};const m=meta();d.querySelector('.ndR5-note').value=m[idx]||'';d.querySelector('.ndR5-note').oninput=e=>{const z=meta();z[idx]=e.target.value;save(z)};el.appendChild(d)})}const ob=new MutationObserver(()=>{clearTimeout(window.__ndR5);window.__ndR5=setTimeout(inject,120)});window.addEventListener('load',()=>setTimeout(inject,300));ob.observe(document.body,{childList:true,subtree:true})})();
 </script>
+
+<!-- ND BURGS — RODADAS 6 A 12 — PACOTE COMPLETO -->
+<style id="nd-r6-r12-css">
+/* ===== R6 CHECKOUT ===== */
+#ndR6Checkout{margin:12px 0;padding:14px;border-radius:16px;background:#0d0d0d;border:1px solid #292929;color:#fff}
+#ndR6Checkout h3{margin:0 0 10px;font-size:17px}
+.ndR6-row{display:flex;justify-content:space-between;gap:10px;margin:7px 0;font-size:13px}
+.ndR6-total{font-size:20px;font-weight:1000;border-top:1px solid #333;padding-top:10px}
+.ndR6-btn{width:100%;border:0;border-radius:12px;padding:12px;margin-top:8px;font-weight:1000;cursor:pointer}
+.ndR6-confirm{background:#e50914;color:#fff}
+.ndR6-cancel{background:#222;color:#fff}
+
+/* ===== R7 UPSELL ===== */
+#ndR7Upsell{position:fixed;inset:auto 12px 90px;z-index:99990;max-width:430px;margin:auto;
+background:#111;color:#fff;border:1px solid #333;border-radius:18px;padding:16px;box-shadow:0 18px 55px #000b;display:none}
+#ndR7Upsell.show{display:block}
+.ndR7-item{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.ndR7-add{border:0;border-radius:10px;background:#e50914;color:#fff;padding:9px 12px;font-weight:900}
+
+/* ===== R8 COMBOS ===== */
+#ndR8ComboModal{position:fixed;inset:0;background:#000b;z-index:100000;display:none;align-items:center;justify-content:center;padding:15px}
+#ndR8ComboModal.show{display:flex}
+.ndR8-box{width:min(560px,100%);background:#111;color:#fff;border:1px solid #333;border-radius:20px;padding:20px;max-height:90vh;overflow:auto}
+.ndR8-choice{width:100%;padding:14px;margin:7px 0;border-radius:13px;border:1px solid #444;background:#1a1a1a;color:#fff;font-weight:1000;text-align:left;cursor:pointer}
+.ndR8-choice:hover{border-color:#e50914}
+.ndR8-close{float:right;background:none;border:0;color:#fff;font-size:24px}
+
+/* ===== R9 AÇAÍ ===== */
+.ndR9-builder{padding:12px;border-radius:14px;background:#111;border:1px solid #2b2b2b;color:#fff;margin-top:10px}
+.ndR9-counter{font-weight:1000;margin:7px 0}
+.ndR9-price{font-size:18px;font-weight:1000}
+.ndR9-opt{display:inline-flex;align-items:center;gap:6px;margin:4px;padding:7px 9px;border:1px solid #333;border-radius:9px;background:#181818}
+.ndR9-opt input{accent-color:#e50914}
+
+/* ===== R10 PASTÉIS ===== */
+.ndR10-builder{padding:12px;background:#111;border:1px solid #2b2b2b;border-radius:14px;margin-top:10px}
+.ndR10-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #242424}
+.ndR10-qty{display:flex;align-items:center;gap:6px}
+.ndR10-qty button{width:28px;height:28px;border:0;border-radius:8px;background:#222;color:#fff;font-weight:1000}
+
+/* ===== R11 MOBILE ===== */
+@media(max-width:700px){
+  html{scroll-behavior:auto!important}
+  body{overflow-x:hidden}
+  .produto{min-width:0!important}
+  .produto img{max-height:110px;object-fit:cover}
+  .produto h3,.produto h2{font-size:12px!important;line-height:1.15!important}
+  .produto p{font-size:10px!important;line-height:1.25!important}
+  .produto button{min-height:34px;font-size:11px!important}
+  #ndR7Upsell{left:8px;right:8px;bottom:78px}
+}
+
+/* ===== R12 CLEANUP GUARDS ===== */
+#ndR12-top{position:fixed;right:10px;bottom:75px;z-index:9998;display:none}
+#ndR12-top button{border:0;border-radius:50%;width:42px;height:42px;background:#111;color:#fff;font-weight:1000}
+</style>
+
+<div id="ndR7Upsell" aria-live="polite"></div>
+
+<div id="ndR8ComboModal" role="dialog" aria-modal="true">
+  <div class="ndR8-box">
+    <button class="ndR8-close" type="button" aria-label="Fechar">×</button>
+    <h2 style="margin-top:0">COMO VOCÊ QUER SEU COMBO?</h2>
+    <div id="ndR8ComboBody"></div>
+  </div>
+</div>
+
+<div id="ndR12-top"><button type="button" aria-label="Voltar ao topo">↑</button></div>
+
+<script id="nd-r6-r12-js">
+(function(){
+"use strict";
+
+/* =========================
+   R12 — ESTABILIDADE
+   Não cria rolagem automática.
+   ========================= */
+document.documentElement.style.scrollBehavior="auto";
+
+/* Remove listeners/elementos que possam ter sido criados pelas próprias rodadas
+   anteriores quando houver duplicação visível. */
+function dedupe(selector){
+  const els=[...document.querySelectorAll(selector)];
+  els.slice(1).forEach(e=>e.remove());
+}
+dedupe("#ndR7Upsell");
+dedupe("#ndR8ComboModal");
+dedupe("#ndR12-top");
+
+const money=v=>(Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+function cart(){
+  const names=["carrinho","cart","itensCarrinho","pedido","itens"];
+  for(const n of names) if(Array.isArray(window[n])) return window[n];
+  return null;
+}
+function itemName(i){return String(i?.nome||i?.titulo||i?.name||i?.produto||"Item")}
+function itemQty(i){return Math.max(1,Number(i?.quantidade??i?.qtd??i?.qty??1)||1)}
+function itemPrice(i){return Number(i?.preco??i?.valor??i?.price??0)||0}
+function total(){
+  return (cart()||[]).reduce((s,i)=>s+itemQty(i)*itemPrice(i),0);
+}
+function persist(){
+  try{
+    if(typeof salvarCarrinho==="function") salvarCarrinho();
+    if(typeof salvarCarrinhoLocal==="function") salvarCarrinhoLocal();
+  }catch(e){}
+}
+function refreshCart(){
+  try{
+    if(typeof atualizarCarrinho==="function") atualizarCarrinho();
+    else if(typeof renderCarrinho==="function") renderCarrinho();
+    else if(typeof atualizarCarrinhoFlutuante==="function") atualizarCarrinhoFlutuante();
+  }catch(e){}
+  persist();
+}
+
+/* =========================
+   R6 — RESUMO / CHECKOUT
+   ========================= */
+function buildCheckout(){
+  if(document.querySelector("#ndR6Checkout")) return;
+  const root=document.querySelector("#carrinhoModal,#modalCarrinho,.carrinho,#carrinhoConteudo,.carrinho-conteudo");
+  if(!root) return;
+
+  const box=document.createElement("section");
+  box.id="ndR6Checkout";
+  box.innerHTML=`
+    <h3>RESUMO DO PEDIDO</h3>
+    <div id="ndR6Lines"></div>
+    <div class="ndR6-row"><span>Subtotal</span><strong id="ndR6Subtotal">R$ 0,00</strong></div>
+    <div class="ndR6-row"><span>Entrega</span><strong id="ndR6Delivery">Consultar</strong></div>
+    <div class="ndR6-row ndR6-total"><span>TOTAL</span><strong id="ndR6Total">R$ 0,00</strong></div>
+    <button class="ndR6-btn ndR6-confirm" type="button" id="ndR6Confirm">REVISAR PEDIDO</button>
+  `;
+  root.appendChild(box);
+
+  box.querySelector("#ndR6Confirm").onclick=()=>{
+    const c=cart()||[];
+    if(!c.length){alert("Seu carrinho está vazio.");return}
+    const resumo=c.map(i=>`${itemQty(i)}x ${itemName(i)} — ${money(itemQty(i)*itemPrice(i))}`).join("\\n");
+    const ok=confirm("CONFIRME SEU PEDIDO:\\n\\n"+resumo+"\\n\\nTOTAL DOS ITENS: "+money(total())+"\\n\\nDeseja continuar para finalizar?");
+    if(ok){
+      /* Chama o checkout já existente, se houver. */
+      const btn=[...document.querySelectorAll("button,a")].find(b=>{
+        const t=(b.textContent||"").toUpperCase();
+        return t.includes("FINALIZAR")||t.includes("WHATSAPP");
+      });
+      if(btn) btn.click();
+    }
+  };
+}
+function updateCheckout(){
+  const c=cart()||[], lines=document.querySelector("#ndR6Lines");
+  if(!lines)return;
+  lines.innerHTML=c.map(i=>`<div class="ndR6-row"><span>${itemQty(i)}x ${itemName(i)}</span><strong>${money(itemQty(i)*itemPrice(i))}</strong></div>`).join("")||"<small>Seu carrinho está vazio.</small>";
+  const t=total();
+  const s=document.querySelector("#ndR6Subtotal"); if(s)s.textContent=money(t);
+  const tt=document.querySelector("#ndR6Total"); if(tt)tt.textContent=money(t);
+}
+
+/* =========================
+   R7 — UPSELL INTELIGENTE
+   ========================= */
+const complementary=[
+  ["BATATA","Bebida","Uma bebida combina muito com seu pedido."],
+  ["HAMB","BATATA","Que tal completar com uma porção?"],
+  ["PASTEL","BEBIDA","Uma bebida para acompanhar seus pastéis."],
+  ["AÇAÍ","SOBREMESA","Finalize com uma sobremesa."],
+  ["COMBO","SOBREMESA","Que tal uma sobremesa depois do combo?"]
+];
+function showUpsell(){
+  const c=cart()||[], box=document.querySelector("#ndR7Upsell");
+  if(!box||!c.length)return;
+  const text=c.map(itemName).join(" ").toUpperCase();
+  let msg="QUE TAL LEVAR MAIS UM?";
+  if(text.includes("AÇAÍ"))msg="COMBINAÇÃO PERFEITA PARA SEU AÇAÍ";
+  else if(text.includes("PASTEL"))msg="QUE TAL UMA BEBIDA PARA ACOMPANHAR?";
+  else if(text.includes("COMBO")||text.includes("BURGER")||text.includes("HAMB"))msg="COMPLETE SEU PEDIDO";
+  const buttons=[...document.querySelectorAll(".produto button")];
+  const candidates=buttons.filter(b=>{
+    const t=(b.textContent||"").toUpperCase();
+    const card=b.closest(".produto");
+    const n=(card?.textContent||"").toUpperCase();
+    return t.includes("ADICIONAR") && !c.some(i=>n.includes(itemName(i).toUpperCase()));
+  }).slice(0,2);
+  if(!candidates.length)return;
+  box.innerHTML=`<strong>${msg}</strong><div style="font-size:12px;margin-top:4px;color:#bbb">Sugestão para deixar seu pedido mais completo:</div>`;
+  candidates.forEach(b=>{
+    const clone=b.cloneNode(true);
+    const card=b.closest(".produto");
+    const name=(card?.querySelector("h2,h3,h4")?.textContent||"Mais um item").trim();
+    const row=document.createElement("div"); row.className="ndR7-item";
+    row.innerHTML=`<span>${name}</span>`;
+    clone.className="ndR7-add"; clone.textContent="ADICIONAR";
+    clone.onclick=()=>{b.click();box.classList.remove("show")};
+    row.appendChild(clone); box.appendChild(row);
+  });
+  box.classList.add("show");
+  setTimeout(()=>box.classList.remove("show"),9000);
+}
+
+/* =========================
+   R8 — COMBOS
+   ========================= */
+const comboNames=["COMBO","SÓ LOVE","5 ESTRELAS","MAIS VENDIDO","DIETA SÓ SEGUNDA"];
+const artisan=["PATÃO","GAROTINHO","BERENICE","DINA","GADEIA"];
+function isComboCard(card){
+  const t=(card?.textContent||"").toUpperCase();
+  return comboNames.some(x=>t.includes(x)) && !t.includes("PASTELZIN ND");
+}
+function openCombo(card, originalButton){
+  const modal=document.querySelector("#ndR8ComboModal"), body=document.querySelector("#ndR8ComboBody");
+  if(!modal||!body)return;
+  const title=(card.querySelector("h2,h3,h4")?.textContent||"COMBO").trim();
+  const price=(card.textContent.match(/R\$\s*[\d.,]+/)||[""])[0];
+  body.innerHTML=`
+    <p style="color:#bbb">${title}</p>
+    <button class="ndR8-choice" data-choice="trad">TRADICIONAL<br><small>${price}</small></button>
+    <button class="ndR8-choice" data-choice="art">ARTESANAL<br><small>Turbine seu combo com um lanche artesanal</small></button>
+  `;
+  body.querySelector('[data-choice="trad"]').onclick=()=>{modal.classList.remove("show");originalButton.dataset.ndR8Bypass="1";originalButton.click()};
+  body.querySelector('[data-choice="art"]').onclick=()=>{
+    body.innerHTML="<h3>ESCOLHA SEU LANCHE ARTESANAL</h3>";
+    artisan.forEach(n=>{
+      const b=document.createElement("button");b.className="ndR8-choice";b.textContent=n;
+      b.onclick=()=>{modal.classList.remove("show");originalButton.dataset.ndR8Art=n;originalButton.dataset.ndR8Bypass="1";originalButton.click()};
+      body.appendChild(b);
+    });
+  };
+  modal.classList.add("show");
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");
+  if(!b)return;
+  const t=(b.textContent||"").trim().toUpperCase();
+  const card=b.closest(".produto");
+  if(card && t==="COMPRAR" && isComboCard(card) && !b.dataset.ndR8Bypass){
+    e.preventDefault();e.stopImmediatePropagation();openCombo(card,b);
+  }
+},true);
+document.querySelector("#ndR8ComboModal .ndR8-close")?.addEventListener("click",()=>document.querySelector("#ndR8ComboModal").classList.remove("show"));
+
+/* =========================
+   R9 — AÇAÍ: reforço de contador visual
+   ========================= */
+function decorateAcai(){
+  document.querySelectorAll(".produto").forEach(card=>{
+    const t=(card.textContent||"").toUpperCase();
+    if(!t.includes("AÇAÍ")||card.dataset.ndR9)return;
+    card.dataset.ndR9="1";
+    const b=document.createElement("div");b.className="ndR9-builder";
+    b.innerHTML=`<div class="ndR9-counter">ACOMPANHAMENTOS: até 3 GRÁTIS</div>
+                 <div class="ndR9-price">Preço calculado na escolha</div>`;
+    card.appendChild(b);
+  });
+}
+
+/* =========================
+   R10 — PASTÉIS: reforço de múltiplas unidades
+   ========================= */
+function decoratePastel(){
+  document.querySelectorAll(".produto").forEach(card=>{
+    const t=(card.textContent||"").toUpperCase();
+    if(!t.includes("PASTEL")||card.dataset.ndR10)return;
+    card.dataset.ndR10="1";
+    /* Não cria preço paralelo nem altera o botão existente.
+       Apenas deixa explícito que o item pode ser repetido pelo carrinho. */
+    const b=document.createElement("div");b.className="ndR10-builder";
+    b.innerHTML="<strong>QUANTIDADE LIVRE</strong><div style='font-size:11px;color:#aaa;margin-top:4px'>Você pode adicionar este pastel quantas vezes quiser.</div>";
+    card.appendChild(b);
+  });
+}
+
+/* =========================
+   R11 — MOBILE / CARRINHO
+   ========================= */
+function mobileGuard(){
+  if(innerWidth>700)return;
+  const tops=document.querySelectorAll("#carrinhoFlutuante button,.cart-top,.carrinho-topo,.btn-carrinho-topo");
+  /* Remove somente botões claramente duplicados de carrinho no topo.
+     Mantém o carrinho flutuante inferior. */
+  tops.forEach(b=>{
+    const r=b.getBoundingClientRect();
+    if(r.top<160 && !b.closest("#carrinhoFlutuante")) b.style.display="none";
+  });
+}
+
+/* =========================
+   R12 — OBSERVADOR ÚNICO
+   ========================= */
+let timer=0;
+function run(){
+  clearTimeout(timer);
+  timer=setTimeout(()=>{
+    buildCheckout();
+    updateCheckout();
+    decorateAcai();
+    decoratePastel();
+    mobileGuard();
+  },150);
+}
+new MutationObserver(run).observe(document.body,{childList:true,subtree:true});
+window.addEventListener("load",()=>setTimeout(run,350));
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");
+  if(!b)return;
+  const t=(b.textContent||"").toUpperCase();
+  if(t.includes("ADICIONAR")||t.includes("COMPRAR")||t.includes("CARRINHO")||t.includes("FINALIZAR")){
+    setTimeout(()=>{run();showUpsell()},250);
+  }
+},false);
+
+})();
+</script>
+
 </body>
 </html>
