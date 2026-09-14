@@ -11874,5 +11874,149 @@ body.nd-cart-modal-open #ndFxCartbar,
 })();
 </script>
 
+
+
+<!-- ============================================================
+     ND BURGS — FASE 1 / ESTABILIDADE CORE — 20260914
+     Objetivo: reduzir falhas de estado entre as camadas antigas,
+     garantir um único carrinho lógico e tornar o endereço inicial
+     confiável, sem alterar produtos/preços/layout.
+============================================================ -->
+<style id="nd-fase1-stability-css">
+#ndF1Status{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,14px);z-index:2147483646;opacity:0;pointer-events:none;background:#101014;border:1px solid rgba(37,211,102,.55);color:#fff;border-radius:13px;padding:10px 14px;font-size:12px;font-weight:900;box-shadow:0 12px 35px rgba(0,0,0,.55);transition:.2s ease;max-width:calc(100vw - 28px);text-align:center}
+#ndF1Status.show{opacity:1;transform:translate(-50%,0)}
+</style>
+<script id="nd-fase1-stability-js">
+(function(){
+'use strict';
+var F1={timer:null};
+function $(s){return document.querySelector(s)}
+function safeSet(k,v){try{localStorage.setItem(k,String(v==null?'':v))}catch(e){}}
+function safeGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
+function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase()}
+function toast(msg){
+  var x=$('#ndF1Status');
+  if(!x){x=document.createElement('div');x.id='ndF1Status';document.body.appendChild(x)}
+  x.textContent=msg;x.classList.add('show');clearTimeout(F1.timer);F1.timer=setTimeout(function(){x.classList.remove('show')},1800);
+}
+function syncCartReference(){
+  try{
+    if(typeof carrinho!=='undefined' && Array.isArray(carrinho)){
+      window.carrinho=carrinho;
+    }
+  }catch(e){}
+}
+function cartArray(){
+  try{
+    if(typeof carrinho!=='undefined' && Array.isArray(carrinho)){
+      window.carrinho=carrinho;
+      return carrinho;
+    }
+  }catch(e){}
+  if(!Array.isArray(window.carrinho))window.carrinho=[];
+  return window.carrinho;
+}
+function saveAddress(type,street,number){
+  var t=type==='RETIRADA'?'RETIRADA':'ENTREGA';
+  var s=String(street||'').trim(),n=String(number||'').trim();
+  safeSet('nd26_tipo',t);safeSet('nd26_rua',s);safeSet('nd26_numero',n);
+  safeSet('nd17_tipo',t);safeSet('nd17_rua',s);safeSet('nd17_numero',n);
+  safeSet('ndburgs_primeira_visita_endereco_v1','1');
+  window.dispatchEvent(new CustomEvent('nd:addressSaved',{detail:{type:t,street:s,number:n}}));
+}
+function getAddress(){
+  return {
+    type:safeGet('nd26_tipo')||safeGet('nd17_tipo')||'ENTREGA',
+    street:safeGet('nd26_rua')||safeGet('nd17_rua'),
+    number:safeGet('nd26_numero')||safeGet('nd17_numero')
+  };
+}
+function exactStreet(value){
+  var wanted=norm(value), obj;
+  try{obj=(typeof window.taxas!=='undefined'&&window.taxas)||{}}catch(e){obj={}};
+  var keys=Object.keys(obj).filter(function(k){return !['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(k)});
+  for(var i=0;i<keys.length;i++)if(norm(keys[i])===wanted)return keys[i];
+  return null;
+}
+function closeFirstGate(){
+  var g=$('#ndFirstVisitGate');if(g)g.classList.remove('show');document.body.style.overflow='';
+}
+function installFirstSave(){
+  var b=$('#ndFirstSave');if(!b||b.dataset.ndF1Installed)return;
+  b.dataset.ndF1Installed='1';
+  b.addEventListener('click',function(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    var input=$('#ndFirstStreet'),num=$('#ndFirstNumber'),status=$('#ndFirstStatus');
+    if(!input||!num)return;
+    var raw=(input.value||'').trim(), n=(num.value||'').trim();
+    if(!raw){if(status)status.textContent='Digite sua rua para continuar.';input.focus();return}
+    var street=exactStreet(raw);
+    if(!street){
+      if(window.NDAddressRegionV2&&typeof window.NDAddressRegionV2.showMsg==='function')window.NDAddressRegionV2.showMsg();
+      else if(status)status.textContent='INFELIZMENTE NÃO ENTREGAMOS NA SUA REGIÃO';
+      input.focus();return;
+    }
+    if(!n){if(status)status.textContent='Digite o número do endereço para continuar.';num.focus();return}
+    input.value=street;input.dataset.valid='1';
+    saveAddress('ENTREGA',street,n);
+    var top=$('#ndTopStreet'),topNum=$('#ndTopNumber');
+    if(top){top.value=street;top.dataset.valid='1'}
+    if(topNum)topNum.value=n;
+    var rua=$('#rua'),numMain=$('#numero');
+    if(rua)rua.value=street;
+    if(numMain)numMain.value=n;
+    var ruaModal=$('#ruaModal'),numModal=$('#numeroModal');
+    if(ruaModal)ruaModal.value=street;
+    if(numModal)numModal.value=n;
+    [top,topNum,rua,numMain,ruaModal,numModal].forEach(function(el){if(el)try{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}catch(_) {}});
+    try{if(typeof window.syncCheckoutAddr==='function')window.syncCheckoutAddr()}catch(_){}
+    try{if(typeof window.addressSummary==='function')window.addressSummary()}catch(_){}
+    try{if(typeof window.atualizarCarrinho==='function')window.atualizarCarrinho()}catch(_){}
+    if(status){status.textContent='✓ Endereço salvo com sucesso!';status.style.color='#25d366'}
+    closeFirstGate();toast('✓ Endereço salvo com sucesso');
+  },true);
+}
+function installPickup(){
+  var b=$('#ndFirstPickup');if(!b||b.dataset.ndF1Pickup)return;
+  b.dataset.ndF1Pickup='1';
+  b.addEventListener('click',function(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    saveAddress('RETIRADA','','');
+    var ids=['tipoPedido','tipoPedidoModal'];
+    ids.forEach(function(id){var el=document.getElementById(id);if(el){el.value='RETIRADA';try{el.dispatchEvent(new Event('change',{bubbles:true}))}catch(_) {}}});
+    var top=$('#ndTopStreet'),topNum=$('#ndTopNumber');if(top)top.value='';if(topNum)topNum.value='';
+    closeFirstGate();
+    try{if(typeof window.alterarTipoPedido==='function')window.alterarTipoPedido()}catch(_){}
+    try{if(typeof window.atualizarCarrinho==='function')window.atualizarCarrinho()}catch(_){}
+    toast('✓ Retirada na loja selecionada');
+  },true);
+}
+function guardCheckout(){
+  var buttons=document.querySelectorAll('#btnFinalizarPedido,#finalizarPedido,#btnConcluirPedido,.btn-finalizar-pedido,.btn-finalizar-modal');
+  buttons.forEach(function(btn){
+    if(btn.dataset.ndF1Guard)return;btn.dataset.ndF1Guard='1';
+    btn.addEventListener('click',function(e){
+      var c=cartArray();
+      if(!Array.isArray(c)||!c.length){e.preventDefault();e.stopImmediatePropagation();toast('⚠️ Adicione pelo menos 1 item ao carrinho');return}
+      var a=getAddress();
+      if(a.type!=='RETIRADA'&&(!a.street||!a.number)){
+        e.preventDefault();e.stopImmediatePropagation();
+        var gate=$('#ndFirstVisitGate');if(gate){gate.classList.add('show');document.body.style.overflow='hidden'}
+        toast('⚠️ Selecione seu endereço antes de finalizar');return;
+      }
+    },true);
+  });
+}
+function boot(){
+  syncCartReference();
+  installFirstSave();installPickup();guardCheckout();
+  setTimeout(function(){syncCartReference();installFirstSave();installPickup();guardCheckout()},300);
+  setTimeout(function(){syncCartReference();installFirstSave();installPickup();guardCheckout()},1000);
+  window.addEventListener('nd:addressSaved',function(){try{if(typeof window.atualizarCarrinho==='function')window.atualizarCarrinho()}catch(_){}guardCheckout()});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.NDBURGS_FASE1={version:'20260914',getAddress:getAddress,saveAddress:saveAddress,syncCartReference:syncCartReference};
+})();
+</script>
 </body>
 </html>
