@@ -12018,5 +12018,176 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 window.NDBURGS_FASE1={version:'20260914',getAddress:getAddress,saveAddress:saveAddress,syncCartReference:syncCartReference};
 })();
 </script>
+
+<!-- ============================================================
+     ND BURGS — FASE 2 / MOBILE + CARRINHO ÚNICO — 20260914
+     Objetivo: no celular, manter somente a navegação inferior,
+     com carrinho e quantidade, sem barras/botões concorrentes.
+============================================================ -->
+<style id="nd-fase2-mobile-css">
+@media (max-width: 700px){
+  body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+
+  /* Carrinhos flutuantes antigos/topo: nunca competir com a barra inferior. */
+  #carrinhoFlutuante,
+  #ndFxCartbar,
+  .nd-v3-buybar,
+  .nd-cart-fab,
+  .nd-cart-label,
+  [class*="cart-fab"],
+  [class*="cart-floating"]{
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  /* Única navegação/carrinho visível no celular. */
+  #ndR17BottomNav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    position:fixed!important;
+    left:8px!important;right:8px!important;
+    bottom:calc(7px + env(safe-area-inset-bottom))!important;
+    width:auto!important;height:64px!important;
+    padding:5px!important;gap:4px!important;
+    z-index:2147483000!important;
+    border-radius:17px!important;
+    background:rgba(12,12,14,.98)!important;
+    border:1px solid rgba(255,255,255,.10)!important;
+    box-shadow:0 14px 40px rgba(0,0,0,.72)!important;
+    backdrop-filter:blur(18px)!important;
+    -webkit-backdrop-filter:blur(18px)!important;
+  }
+
+  #ndR17BottomNav .nd-r17-nav-btn{
+    position:relative!important;min-width:0!important;
+    min-height:54px!important;height:54px!important;
+    border:0!important;border-radius:12px!important;
+    padding:5px 2px!important;background:transparent!important;
+    color:#8d8f96!important;font-size:8.5px!important;
+    font-weight:900!important;line-height:1!important;
+    -webkit-tap-highlight-color:transparent!important;
+    touch-action:manipulation!important;
+  }
+  #ndR17BottomNav .nd-r17-nav-btn b{
+    display:block!important;font-size:19px!important;
+    line-height:21px!important;margin-bottom:4px!important;
+  }
+  #ndR17BottomNav .nd-r17-nav-btn:active{transform:scale(.95)!important}
+  #ndR17BottomNav .nd-r17-nav-btn.active,
+  #ndR17BottomNav .nd-r17-nav-btn:hover{color:#fff!important;background:rgba(229,9,20,.13)!important}
+
+  #ndR17BottomNav .nd-r17-f2-badge{
+    position:absolute!important;
+    top:1px!important;right:calc(50% - 22px)!important;
+    min-width:18px!important;height:18px!important;
+    padding:0 4px!important;display:none!important;
+    align-items:center!important;justify-content:center!important;
+    border-radius:999px!important;
+    background:#e50914!important;color:#fff!important;
+    border:2px solid #0c0c0e!important;
+    box-shadow:0 2px 8px rgba(0,0,0,.5)!important;
+    font-size:8px!important;font-weight:1000!important;
+    line-height:1!important;z-index:3!important;
+  }
+  #ndR17BottomNav .nd-r17-f2-badge.show{display:flex!important}
+
+  /* Evita que a barra cubra os últimos produtos. */
+  .container{padding-bottom:18px!important}
+}
+
+@media (min-width:701px){
+  #ndR17BottomNav .nd-r17-f2-badge{display:none!important}
+}
+</style>
+<script id="nd-fase2-mobile-js">
+(function(){
+  'use strict';
+  if(window.__NDBURGS_FASE2__)return;
+  window.__NDBURGS_FASE2__=true;
+
+  function qs(s){return document.querySelector(s)}
+  function qsa(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+  function qty(){
+    try{
+      var c=Array.isArray(window.carrinho)?window.carrinho:[];
+      return c.reduce(function(n,x){return n+(Math.max(1,Number(x&&x.quantidade)||1))},0);
+    }catch(e){return 0}
+  }
+
+  function ensureNav(){
+    var nav=qs('#ndR17BottomNav');
+    if(!nav)return null;
+    var cart=nav.querySelector('[data-go="cart"]');
+    if(!cart)return nav;
+
+    var badge=cart.querySelector('.nd-r17-f2-badge');
+    if(!badge){
+      badge=document.createElement('span');
+      badge.className='nd-r17-f2-badge';
+      badge.setAttribute('aria-hidden','true');
+      cart.appendChild(badge);
+    }
+
+    var n=qty();
+    badge.textContent=n>99?'99+':String(n);
+    badge.classList.toggle('show',n>0);
+    cart.setAttribute('aria-label',n>0?'Abrir carrinho — '+n+(n===1?' item':' itens'):'Abrir carrinho');
+    return nav;
+  }
+
+  function enforceMobile(){
+    if(window.innerWidth>700)return;
+    /* Esconde apenas elementos que representam barras/carrinhos concorrentes. */
+    qsa('#carrinhoFlutuante,#ndFxCartbar,.nd-v3-buybar,.nd-cart-fab,.nd-cart-label').forEach(function(el){
+      el.style.setProperty('display','none','important');
+      el.style.setProperty('visibility','hidden','important');
+      el.style.setProperty('pointer-events','none','important');
+    });
+    ensureNav();
+  }
+
+  function refresh(){
+    ensureNav();
+    enforceMobile();
+  }
+
+  function boot(){
+    refresh();
+    setTimeout(refresh,100);
+    setTimeout(refresh,500);
+    setTimeout(refresh,1200);
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+
+  window.addEventListener('resize',refresh,{passive:true});
+  window.addEventListener('pageshow',refresh,{passive:true});
+  window.addEventListener('storage',refresh,{passive:true});
+  window.addEventListener('nd:addressSaved',refresh);
+
+  /* Atualiza a quantidade sem depender de uma única versão de atualizarCarrinho. */
+  var last=-1;
+  setInterval(function(){
+    var n=qty();
+    if(n!==last){last=n;refresh()}
+    else if(window.innerWidth<=700)enforceMobile();
+  },700);
+
+  /* Se uma camada antiga recriar uma barra, ela é neutralizada no celular. */
+  try{
+    var obs=new MutationObserver(function(){
+      if(window.innerWidth<=700)enforceMobile();
+      ensureNav();
+    });
+    if(document.body)obs.observe(document.body,{childList:true,subtree:true});
+    else window.addEventListener('DOMContentLoaded',function(){obs.observe(document.body,{childList:true,subtree:true})},{once:true});
+  }catch(e){}
+
+  window.NDBURGS_FASE2={version:'20260914',refresh:refresh,cartQuantity:qty};
+})();
+</script>
 </body>
 </html>
