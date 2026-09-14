@@ -1,10 +1,10 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260912-R34">
+<meta name="nd-site-version" content="20260914-R45">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260912-R34";
+  const ND_SITE_VERSION = "20260914-R45";
   const KEY = "ndburgs_site_version";
   try {
     const old = localStorage.getItem(KEY);
@@ -23,6 +23,13 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ND BURGS">
+<link rel="manifest" href="./manifest.webmanifest?v=20260914-R45">
+<link rel="apple-touch-icon" href="./icons/icon-192.png?v=20260914-R45">
 
 <link rel="icon" type="image/png" href="./favicon.png?v=1">
 <link rel="shortcut icon" type="image/png" href="./favicon.png?v=1">
@@ -9967,7 +9974,7 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
   window.addEventListener('load',moveActionsTop);
 })();
 </script>
-</body>
+
 
 <!-- =========================================================
      ND BURGS — R28 / AJUSTES SOLICITADOS
@@ -10999,7 +11006,7 @@ body.nd-cart-modal-open #ndFxCartbar,
   setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3000);
 })();
 </script>
-</html>
+
 
 <!-- ND BURGS R42 — CORREÇÃO FINAL DA BUSCA + CTA DO CARRINHO -->
 <style id="nd-r42-search-cart-fix">
@@ -11122,3 +11129,161 @@ body.nd-cart-modal-open #ndFxCartbar,
   window.ND_R42={fixSearch:forceSearchState};
 })();
 </script>
+
+
+<!-- ND BURGS R45 — ESTABILIDADE FINAL + PWA -->
+<style id="nd-r45-stability-pwa">
+  /* O carrinho fixo NUNCA fica sobre o checkout/finalização. */
+  body.nd-checkout-open #ndFxCartbar,
+  body.nd-send-gate-open #ndFxCartbar,
+  #modalFinalizar.ativo ~ #ndFxCartbar,
+  #ndFinalSendGate.show ~ #ndFxCartbar,
+  body.nd-checkout-open #carrinhoFlutuante,
+  body.nd-send-gate-open #carrinhoFlutuante{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+  /* Não permitir que camadas antigas exibam barras alternativas. */
+  #ndCartFab,#ndCartLabel,.nd-v3-buybar,.nd-cart-fab,.nd-cart-label,#carrinhoFlutuante{display:none!important}
+  /* Feedback de compra não altera layout nem provoca scroll. */
+  .nd-r45-buying{opacity:.88!important}
+</style>
+<script id="nd-r45-stability-pwa-js">
+(function(){
+'use strict';
+if(window.__NDBURGS_R45__)return;
+window.__NDBURGS_R45__=true;
+
+const BUY_SEL='.produto .btn-add,.produto .nd-fx-add,.produto .nd-r3-add,.nd-r7-card button[data-r7-add],.nd-v3-up button,.suggestion-card button,.nd26-offer-btn,.r11-promo-copy button,.nd-r17-fb-btn';
+const state={restoreTimers:[], original:new WeakMap()};
+
+function isCheckoutOpen(){
+  const modal=document.getElementById('modalFinalizar');
+  const gate=document.getElementById('ndFinalSendGate');
+  const cart=document.getElementById('modalCarrinho');
+  return !!((modal&&modal.classList.contains('ativo'))||(gate&&gate.classList.contains('show'))||(cart&&cart.classList.contains('ativo')));
+}
+function syncCartVisibility(){
+  const hide=isCheckoutOpen();
+  document.body.classList.toggle('nd-checkout-open',hide);
+  document.body.classList.toggle('nd-send-gate-open',!!document.getElementById('ndFinalSendGate')?.classList.contains('show'));
+  const bar=document.getElementById('ndFxCartbar');
+  if(bar){
+    if(hide){bar.classList.remove('show');bar.style.setProperty('display','none','important');}
+    else {bar.style.removeProperty('display');if(window.carrinho?.length)bar.classList.add('show');}
+  }
+}
+
+function rememberButton(btn){
+  if(!btn||state.original.has(btn))return;
+  const txt=(btn.textContent||'').trim();
+  if(/^(✓\s*)?ADICIONADO/i.test(txt)||!txt)state.original.set(btn,'COMPRAR');
+  else if(/COMPRAR|ADICIONAR/i.test(txt))state.original.set(btn,txt.replace(/^ADICIONAR$/i,'COMPRAR'));
+}
+function restoreButton(btn){
+  if(!btn)return;
+  rememberButton(btn);
+  const original=state.original.get(btn)||'COMPRAR';
+  if(/ESCOLHER SABOR/i.test(original))return;
+  btn.textContent=original;
+  btn.classList.remove('nd-r28-added','nd-r28-flash','nd-r5-added','nd-r15-btn-added','nd-r3-btn-added');
+  btn.removeAttribute('aria-busy');
+}
+function prepareButtons(root=document){
+  root.querySelectorAll?.(BUY_SEL).forEach(rememberButton);
+}
+function lockScrollPosition(y){
+  const restore=()=>window.scrollTo({top:y,left:window.scrollX,behavior:'auto'});
+  [0,20,80,160,280,420,650].forEach(ms=>setTimeout(restore,ms));
+}
+
+/* Clique em COMPRAR: preserva EXATAMENTE a posição do cliente. */
+document.addEventListener('click',function(e){
+  const btn=e.target.closest(BUY_SEL);
+  if(!btn)return;
+  rememberButton(btn);
+  const y=window.scrollY;
+  btn.classList.add('nd-r45-buying');
+  lockScrollPosition(y);
+  [700,1000].forEach(ms=>setTimeout(()=>restoreButton(btn),ms));
+  setTimeout(()=>btn.classList.remove('nd-r45-buying'),1050);
+},true);
+
+/* Se algum módulo antigo tentar voltar ao catálogo, desfazemos somente o scroll dele. */
+const oldScrollTo=window.scrollTo;
+// Não substituímos window.scrollTo globalmente: apenas corrigimos após cliques de compra.
+
+/* Continua comprando: fecha o modal sem deslocar o usuário para outro ponto. */
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.btn-continuar-comprando');
+  if(!btn)return;
+  const y=window.scrollY;
+  setTimeout(()=>window.scrollTo({top:y,left:window.scrollX,behavior:'auto'}),0);
+  setTimeout(()=>window.scrollTo({top:y,left:window.scrollX,behavior:'auto'}),180);
+  setTimeout(()=>window.scrollTo({top:y,left:window.scrollX,behavior:'auto'}),450);
+},true);
+
+/* O modal de finalização e o portão de envio sempre escondem o carrinho. */
+const mo=new MutationObserver(()=>{
+  prepareButtons();
+  syncCartVisibility();
+});
+function init(){
+  prepareButtons();
+  syncCartVisibility();
+  mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
+  [300,800,1500,3000].forEach(ms=>setTimeout(()=>{prepareButtons();syncCartVisibility()},ms));
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+
+/* PWA — registra o service worker quando o arquivo estiver publicado. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js?v=20260914-R45',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
+  },{once:true});
+}
+
+/* Botão de instalação: qualquer elemento com [data-nd-install] pode acioná-lo. */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;document.documentElement.classList.add('nd-can-install');document.dispatchEvent(new CustomEvent('nd:pwa-ready'));});
+window.addEventListener('appinstalled',function(){deferredPrompt=null;document.documentElement.classList.remove('nd-can-install');document.dispatchEvent(new CustomEvent('nd:pwa-installed'));});
+window.NDBURGSInstall=function(){
+  if(!deferredPrompt)return false;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;});
+  return true;
+};
+})();
+</script>
+
+
+<style id="nd-r45-install-ui">
+#ndR45Install{position:fixed;right:14px;bottom:92px;z-index:250001;display:none;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.55);background:linear-gradient(135deg,#e50914,#ff4d20);color:#fff;border-radius:14px;padding:11px 14px;font-weight:900;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:pointer}
+#ndR45Install.show{display:flex}
+@media(max-width:600px){#ndR45Install{right:10px;bottom:82px;padding:10px 12px;font-size:11px}}
+</style>
+<script id="nd-r45-install-ui-js">
+(function(){
+'use strict';
+function boot(){
+ if(document.getElementById('ndR45Install'))return;
+ const b=document.createElement('button');b.id='ndR45Install';b.type='button';b.innerHTML='📲 INSTALAR APP';
+ b.onclick=function(){
+   if(typeof window.NDBURGSInstall==='function'&&window.NDBURGSInstall())return;
+   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+   if(ios){alert('Para instalar a ND BURGS no iPhone: toque em COMPARTILHAR no Safari e depois em “Adicionar à Tela de Início”.');}
+   else if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){return;}
+   else{alert('Abra este site no Chrome do celular e use o botão de instalar/adicionar à tela inicial do navegador.');}
+ };
+ document.body.appendChild(b);
+ const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+ if(!standalone)b.classList.add('show');
+ document.addEventListener('nd:pwa-ready',()=>b.classList.add('show'));
+ document.addEventListener('nd:pwa-installed',()=>b.classList.remove('show'));
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+</body>
+</html>
