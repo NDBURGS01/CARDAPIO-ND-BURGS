@@ -1,7 +1,7 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260914-R45">
+<meta name="nd-site-version" content="20260914-R46">
 <script>
 (function () {
   const ND_SITE_VERSION = "20260914-R45";
@@ -10517,6 +10517,335 @@ const obs=new MutationObserver(bind);if(document.body)obs.observe(document.body,
     addCartBadge();
   },1500);
 
+})();
+</script>
+
+
+<!-- =========================================================
+     ND BURGS R46 — CAMADA DE ESTABILIDADE + UX
+     ========================================================= -->
+<style id="nd-r46-stability">
+  /* Nunca deixar a UI de checkout/carrinho disputar espaço com a navegação. */
+  body.nd-r46-checkout-open #ndFxCartbar,
+  body.nd-r46-checkout-open #carrinhoFlutuante,
+  body.nd-r46-checkout-open #ndR17BottomNav,
+  body.nd-r46-checkout-open .nd-fx-cartbar,
+  body.nd-r46-checkout-open .cart-bar,
+  body.nd-r46-checkout-open [class*="cart"][class*="fixed"]{
+    display:none!important;
+  }
+
+  /* Feedback discreto de produto adicionado */
+  #ndR46Toast{
+    position:fixed;
+    left:50%;
+    bottom:calc(84px + env(safe-area-inset-bottom));
+    transform:translate(-50%, 16px);
+    opacity:0;
+    pointer-events:none;
+    z-index:25000;
+    background:#111;
+    border:1px solid rgba(50,140,255,.55);
+    color:#fff;
+    padding:11px 16px;
+    border-radius:999px;
+    box-shadow:0 8px 30px rgba(0,0,0,.45);
+    font-weight:800;
+    font-size:13px;
+    transition:opacity .18s ease, transform .18s ease;
+    white-space:nowrap;
+  }
+  #ndR46Toast.show{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+  #ndR46Toast.success{border-color:rgba(0,220,120,.65)}
+
+  /* Evita o "pulo" visual de imagens que ainda não têm dimensões. */
+  img{content-visibility:auto;}
+
+  /* Carrinho: recomendações */
+  #ndR46CartSuggestions{
+    margin:14px 0 4px;
+    padding:12px;
+    border-radius:16px;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  #ndR46CartSuggestions[hidden]{display:none!important}
+  .nd-r46-sug-title{
+    font-size:13px;font-weight:900;margin:0 0 9px;color:#fff;
+  }
+  .nd-r46-sug-list{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+  }
+  .nd-r46-sug{
+    min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:9px;border-radius:12px;background:#0b0b0b;border:1px solid rgba(255,255,255,.08);
+  }
+  .nd-r46-sug-name{font-size:11px;font-weight:800;line-height:1.2;overflow:hidden}
+  .nd-r46-sug-add{
+    flex:0 0 auto;border:0;border-radius:9px;padding:7px 9px;font-weight:900;
+    background:#1677ff;color:#fff;cursor:pointer;
+  }
+
+  /* Mobile: cards e CTAs sem exageros */
+  @media(max-width:800px){
+    html{scroll-behavior:auto!important;}
+    body{overflow-x:hidden!important;}
+    #ndR46Toast{bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 28px);}
+    .nd-r46-sug-list{grid-template-columns:1fr;}
+    .nd-r46-sug-add{padding:8px 10px;min-width:58px;}
+    button,input,select,textarea{touch-action:manipulation;}
+  }
+
+  /* Quando uma operação de adicionar está em andamento, não usar animação
+     de scroll nem foco automático que possa deslocar a página. */
+  body.nd-r46-adding *{scroll-behavior:auto!important;}
+</style>
+
+<script id="nd-r46-stability-js">
+(function(){
+  'use strict';
+
+  const R46 = window.NDBURGS_R46 = window.NDBURGS_R46 || {};
+  R46.savedScrollY = null;
+  R46.toastTimer = null;
+  R46.lastAddAt = 0;
+
+  const qs = (s, r=document) => r.querySelector(s);
+  const qsa = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  function getScrollY(){
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+
+  function saveScroll(){
+    R46.savedScrollY = getScrollY();
+    R46.savedScrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+    return R46.savedScrollY;
+  }
+
+  function restoreScroll(){
+    if(R46.savedScrollY == null) return;
+    const y = R46.savedScrollY;
+    const x = R46.savedScrollX || 0;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({left:x, top:y, behavior:'auto'});
+      });
+    });
+  }
+
+  R46.toast = function(message, success=true){
+    let t = qs('#ndR46Toast');
+    if(!t){
+      t = document.createElement('div');
+      t.id='ndR46Toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = message;
+    t.className = success ? 'success show' : 'show';
+    clearTimeout(R46.toastTimer);
+    R46.toastTimer = setTimeout(()=>t.classList.remove('show'), 1500);
+  };
+
+  /*
+   * Intercepta cliques em ações de adicionar SEM substituir as funções originais.
+   * A posição é capturada antes da ação e restaurada depois dela.
+   */
+  document.addEventListener('pointerdown', function(e){
+    const el = e.target.closest(
+      'button, a, [role="button"], input[type="button"], input[type="submit"]'
+    );
+    if(!el) return;
+
+    const text = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim().toLowerCase();
+    const onclick = (el.getAttribute('onclick') || '').toLowerCase();
+
+    const looksLikeAdd =
+      /\b(comprar|adicionar|add|+)\b/.test(text) ||
+      /adicionar|addtocart|additem|comprar|carrinho/.test(onclick);
+
+    if(!looksLikeAdd) return;
+
+    R46.savedScrollY = getScrollY();
+    R46.savedScrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+    R46.lastAddAt = Date.now();
+    document.body.classList.add('nd-r46-adding');
+
+    // Impede que o próprio clique force foco/âncora que altere a posição.
+    if(document.activeElement && document.activeElement !== el){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+  }, true);
+
+  document.addEventListener('click', function(e){
+    const el = e.target.closest(
+      'button, a, [role="button"], input[type="button"], input[type="submit"]'
+    );
+    if(!el) return;
+
+    const text = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim().toLowerCase();
+    const onclick = (el.getAttribute('onclick') || '').toLowerCase();
+    const looksLikeAdd =
+      /\b(comprar|adicionar|add|+)\b/.test(text) ||
+      /adicionar|addtocart|additem|comprar/.test(onclick);
+
+    if(!looksLikeAdd) return;
+
+    const before = R46.savedScrollY;
+    setTimeout(()=>{
+      if(before != null){
+        window.scrollTo({top:before, left:R46.savedScrollX||0, behavior:'auto'});
+      }
+      document.body.classList.remove('nd-r46-adding');
+
+      // Feedback somente quando parece ser uma ação de adição, não em links genéricos.
+      if(/\b(comprar|adicionar|add)\b/.test(text) || /adicionar|addtocart|additem/.test(onclick)){
+        R46.toast('✓ Produto adicionado ao pedido');
+      }
+    }, 0);
+
+    setTimeout(()=>{
+      if(before != null) window.scrollTo({top:before, left:R46.savedScrollX||0, behavior:'auto'});
+    }, 80);
+    setTimeout(()=>{
+      if(before != null) window.scrollTo({top:before, left:R46.savedScrollX||0, behavior:'auto'});
+    }, 250);
+    setTimeout(()=>{
+      if(before != null) window.scrollTo({top:before, left:R46.savedScrollX||0, behavior:'auto'});
+    }, 600);
+  }, true);
+
+  /*
+   * Evita que formulários/botões de compra usem submit padrão,
+   * quando a função original já é tratada por onclick.
+   */
+  document.addEventListener('submit', function(e){
+    const form = e.target;
+    if(!form) return;
+    const hasCartAction = /adicionar|comprar|carrinho|additem/i.test(form.innerText || '');
+    if(hasCartAction){
+      saveScroll();
+      setTimeout(restoreScroll, 0);
+      setTimeout(restoreScroll, 150);
+      setTimeout(restoreScroll, 400);
+    }
+  }, true);
+
+  /* Evita duplo clique acidental em finalização/envio. */
+  document.addEventListener('click', function(e){
+    const el = e.target.closest('button, [role="button"], input[type="submit"]');
+    if(!el) return;
+    const text=(el.innerText||el.value||'').trim().toLowerCase();
+    if(!/finalizar pedido|enviar pedido|concluir pedido|enviar pelo whatsapp/.test(text)) return;
+    const now=Date.now();
+    if(el.dataset.ndR46Busy==='1' && now-(+el.dataset.ndR46BusyAt||0)<1800){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
+    el.dataset.ndR46Busy='1';
+    el.dataset.ndR46BusyAt=String(now);
+    setTimeout(()=>{el.dataset.ndR46Busy='0'}, 1800);
+  }, true);
+
+  /* Checkout: body ganha estado próprio e a barra de navegação some. */
+  function syncModalState(){
+    const checkout = qs('#modalFinalizar');
+    const cart = qs('#modalCarrinho');
+    const checkoutOpen = !!(checkout && checkout.classList.contains('ativo'));
+    const cartOpen = !!(cart && cart.classList.contains('ativo'));
+
+    document.body.classList.toggle('nd-r46-checkout-open', checkoutOpen);
+    document.body.classList.toggle('nd-r46-cart-open', cartOpen);
+
+    if(checkoutOpen){
+      const els = qsa('#ndFxCartbar,#carrinhoFlutuante,.nd-fx-cartbar,.cart-bar');
+      els.forEach(el=>{el.style.setProperty('display','none','important')});
+    }
+  }
+
+  const obs = new MutationObserver(syncModalState);
+  function startObserver(){
+    const c=qs('#modalFinalizar'), k=qs('#modalCarrinho');
+    if(c) obs.observe(c,{attributes:true,attributeFilter:['class']});
+    if(k) obs.observe(k,{attributes:true,attributeFilter:['class']});
+    syncModalState();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', startObserver);
+  else startObserver();
+
+  /* Salva/restaura posição quando a página volta do bfcache. */
+  window.addEventListener('pageshow', function(){
+    if(R46.savedScrollY != null && Date.now()-R46.lastAddAt<3000) restoreScroll();
+  });
+
+  /*
+   * Corrige links internos que possuem href="#" e podem jogar a página para o topo.
+   * Não interfere em links reais ou em elementos com onclick que dependam do #.
+   */
+  document.addEventListener('click', function(e){
+    const a=e.target.closest('a[href="#"]');
+    if(!a) return;
+    const onclick=(a.getAttribute('onclick')||'').toLowerCase();
+    if(/adicionar|comprar|additem|addtocart/.test(onclick)){
+      e.preventDefault();
+    }
+  }, true);
+
+  /* Cria/atualiza badge do carrinho na navegação móvel. */
+  R46.updateBadge = function(){
+    const nav = qs('#ndR17BottomNav');
+    if(!nav) return;
+    const buttons=qsa('button,a',nav);
+    const cart=buttons.find(b=>/carrinho|cart|pedido/i.test((b.innerText||'')+' '+(b.getAttribute('aria-label')||'')));
+    if(!cart) return;
+
+    let badge=cart.querySelector('.nd-r46-cart-badge');
+    if(!badge){
+      badge=document.createElement('span');
+      badge.className='nd-r46-cart-badge';
+      cart.style.position='relative';
+      cart.appendChild(badge);
+    }
+
+    let qty=0;
+    const selectors=[
+      '#cartCount','#cart-count','.cart-count','.cart-badge',
+      '[data-cart-count]','.qtd-carrinho','.quantidade-carrinho'
+    ];
+    for(const s of selectors){
+      const el=qs(s);
+      if(el){
+        const n=parseInt((el.textContent||'').replace(/\D/g,''),10);
+        if(Number.isFinite(n)){qty=n;break;}
+      }
+    }
+    if(!qty){
+      // fallback: soma elementos com controles de quantidade no carrinho
+      qsa('#modalCarrinho .quantidade, #modalCarrinho [data-quantity], #modalCarrinho input[type="number"]')
+        .forEach(el=>{
+          const n=parseInt(el.value||el.textContent||'0',10);
+          if(Number.isFinite(n)) qty+=n;
+        });
+    }
+    badge.textContent=qty>99?'99+':String(qty);
+    badge.hidden=qty<=0;
+  };
+
+  setInterval(R46.updateBadge, 1200);
+  document.addEventListener('DOMContentLoaded', R46.updateBadge);
+
+  /* Pequeno reforço de acessibilidade. */
+  document.addEventListener('DOMContentLoaded', function(){
+    qsa('button').forEach((b,i)=>{
+      if(!b.getAttribute('aria-label') && !b.textContent.trim()){
+        b.setAttribute('aria-label','Botão');
+      }
+    });
+  });
 })();
 </script>
 
