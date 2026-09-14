@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260914-R48-PRO">
+<meta name="nd-site-version" content="20260914-R46-F4">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260914-R48-PRO";
+  const ND_SITE_VERSION = "20260914-R46-F4";
   const KEY = "ndburgs_site_version";
   try {
     const old = localStorage.getItem(KEY);
@@ -785,47 +785,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:760px){.nd20-best-grid{grid-template-columns:1fr!important}.nd20-best-card{grid-template-columns:82px minmax(0,1fr)!important}.nd20-best-card img{width:82px!important;height:82px!important}.nd20-best-add{min-height:42px!important;font-size:12px!important}}
 @media(max-width:430px){#modalCarrinho .btn-continuar-comprando,#modalCarrinho .btn-finalizar-pedido{min-height:62px!important;font-size:14px!important}.nd20-best-card{grid-template-columns:76px minmax(0,1fr)!important}.nd20-best-card img{width:76px!important;height:76px!important}}
 </style>
-
-<style id="nd-r48-critical-css">
-html.nd-r48-loading,html.nd-r48-loading body{background:#050505!important}
-#ndR48CriticalLoader{
-  position:fixed;inset:0;z-index:2147483647;
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:14px;
-  background:
-    radial-gradient(circle at 50% 38%,rgba(220,0,0,.16),transparent 34%),
-    linear-gradient(180deg,#030303,#090909 55%,#030303);
-  color:#fff;font-family:Arial,Helvetica,sans-serif;
-  opacity:1;visibility:visible;
-  transition:opacity .22s ease,visibility .22s ease;
-}
-#ndR48CriticalLoader.nd-hide{opacity:0;visibility:hidden;pointer-events:none}
-.nd-r48-spinner{
-  width:54px;height:54px;border-radius:50%;
-  border:4px solid rgba(255,255,255,.13);
-  border-top-color:#ff2020;border-right-color:#ffd21a;
-  animation:ndR48Spin .72s linear infinite;
-  box-shadow:0 0 26px rgba(255,0,0,.22);
-}
-.nd-r48-loader-title{font-weight:1000;letter-spacing:1.6px;font-size:15px}
-.nd-r48-loader-sub{font-size:10px;font-weight:800;color:#aaa;letter-spacing:.7px}
-@keyframes ndR48Spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){
- #ndR48CriticalLoader{transition:none}
- .nd-r48-spinner{animation:none}
-}
-</style>
-
 </head>
 
-<body class="nd-r48-loading">
-
-<div id="ndR48CriticalLoader" aria-live="polite" aria-label="Carregando ND BURGS">
-  <div class="nd-r48-spinner" aria-hidden="true"></div>
-  <div class="nd-r48-loader-title">CARREGANDO ND BURGS</div>
-  <div class="nd-r48-loader-sub">PREPARANDO SEU CARDÁPIO...</div>
-</div>
-
+<body>
 
 <!-- ND R17: horário comercial real — terça a domingo, 18:00 às 00:30 -->
 
@@ -5661,7 +5623,7 @@ button{font-family:inherit}
 .search-count{min-width:42px;text-align:right}
 
 /* INDICADOR DE CARREGAMENTO DO SITE */
-.nd-r5-loader{position:fixed;inset:0;z-index:999998;display:flex;align-items:center;justify-content:center;background:#070707;transition:opacity .28s ease,visibility .28s ease}
+.nd-r5-loader{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:#070707;transition:opacity .28s ease,visibility .28s ease}
 .nd-r5-loader.hide{opacity:0;visibility:hidden;pointer-events:none}
 .nd-r5-loader-box{text-align:center}
 .nd-r5-loader-mark{width:44px;height:44px;margin:auto;border:3px solid rgba(255,255,255,.10);border-top-color:#e50914;border-right-color:#f5c400;border-radius:50%;animation:ndR5Spin .75s linear infinite}
@@ -11860,58 +11822,7 @@ body.nd-cart-modal-open #ndFxCartbar,
     }
   }
 
-  /* Limpa pesquisa/filtros e devolve o cliente ao cardápio completo. */
-  function limparPesquisaCompleta(){
-    const input=document.getElementById('buscaProdutos');
-    const clear=document.getElementById('ndR31ClearSearch');
-    if(input){
-      input.value='';
-      input.dispatchEvent(new Event('input',{bubbles:true}));
-      input.dispatchEvent(new Event('change',{bubbles:true}));
-    }
-    if(clear){try{clear.click()}catch(e){}}
-    document.querySelectorAll('.produto').forEach(el=>{
-      el.classList.remove('search-hidden','nd14-hidden','ndR32-no-match','ndR32-match');
-      el.style.removeProperty('display');
-    });
-    document.querySelectorAll('.categoria').forEach(el=>{
-      el.classList.remove('search-hidden','nd14-hidden','ndR32-no-match');
-      el.style.removeProperty('display');
-    });
-    const vazio=document.getElementById('semResultados');
-    if(vazio)vazio.style.display='none';
-  }
-
-  function voltarAoCardapioCompleto(){
-    limparPesquisaCompleta();
-    const menu=document.querySelector('.categoria-menu');
-    const container=document.querySelector('.container');
-    const alvo=menu||container;
-    if(alvo){
-      setTimeout(()=>{
-        const top=Math.max(0,alvo.getBoundingClientRect().top+window.scrollY-85);
-        window.scrollTo({top,behavior:'smooth'});
-      },220);
-    }
-  }
-
-  /* Substitui a versão anterior: depois de adicionar, sempre volta ao cardápio inteiro. */
-  function patchAdicionar(){
-    if(typeof window.adicionar!=='function'||window.adicionar.__ndR43)return;
-    const old=window.adicionar;
-    const fn=function(){
-      const before=Array.isArray(window.carrinho)?window.carrinho.reduce((s,x)=>s+(Number(x.quantidade)||1),0):0;
-      const r=old.apply(this,arguments);
-      setTimeout(()=>{
-        const after=Array.isArray(window.carrinho)?window.carrinho.reduce((s,x)=>s+(Number(x.quantidade)||1),0):0;
-        if(after>before)voltarAoCardapioCompleto();
-      },260);
-      return r;
-    };
-    fn.__ndR43=true; fn.__ndR43Original=old; window.adicionar=fn;
-  }
-
-  function init(){patchCartModal();patchAdicionar();}
+  function init(){patchCartModal();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
   setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3000);
 })();
@@ -12426,438 +12337,44 @@ window.addEventListener('nd:addressSaved',repairModalFields);
 })();
 </script>
 
-<!-- ============================================================
-     ND BURGS R47 — CORREÇÕES DEFINITIVAS DE UX
-     20260914
-     - Carrinho fixo nunca aparece durante o checkout
-     - Adicionar produto não altera a posição da página
-     - Loader aparece antes do conteúdo visual
-     - Mantém carrinho e checkout independentes
-============================================================ -->
-<style id="nd-r47-final-css">
-  /* CHECKOUT: esconder qualquer barra/carrinho fixo concorrente */
-  body.nd-r47-checkout-open #carrinhoFlutuante,
-  body.nd-r47-checkout-open #ndFxCartbar,
-  body.nd-r47-checkout-open .nd-v3-buybar,
-  body.nd-r47-checkout-open .nd-fx-cartbar,
-  body.nd-r47-checkout-open .cart-bar,
-  body.nd-r47-checkout-open #ndR17BottomNav,
-  body.nd-r47-checkout-open [class*="cart"][class*="fixed"],
-  body.nd-r47-checkout-open [class*="cart"][class*="floating"]{
-    display:none!important;
-    visibility:hidden!important;
-    opacity:0!important;
-    pointer-events:none!important;
-  }
-
-  /* Durante o checkout, a página de fundo não participa da rolagem */
-  body.nd-r47-checkout-open{
-    overflow:hidden!important;
-    overscroll-behavior:none!important;
-  }
-
-  /* Loader inicial: camada absolutamente acima de tudo */
-  #ndR47Loader{
-    position:fixed!important;
-    inset:0!important;
-    z-index:2147483647!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    background:#070707!important;
-    opacity:1;
-    visibility:visible;
-    pointer-events:auto;
-    transition:opacity .22s ease,visibility .22s ease;
-  }
-  #ndR47Loader.hide{
-    opacity:0!important;
-    visibility:hidden!important;
-    pointer-events:none!important;
-  }
-  #ndR47Loader .nd-r47-loader-box{
-    text-align:center;
-  }
-  #ndR47Loader .nd-r47-loader-mark{
-    width:46px;height:46px;margin:auto;
-    border:3px solid rgba(255,255,255,.10);
-    border-top-color:#e50914;
-    border-right-color:#f5c400;
-    border-radius:50%;
-    animation:ndR47Spin .72s linear infinite;
-  }
-  #ndR47Loader span{
-    display:block;margin-top:12px;
-    color:#888;font-size:10px;font-weight:900;letter-spacing:2px;
-  }
-  @keyframes ndR47Spin{to{transform:rotate(360deg)}}
-  @media(prefers-reduced-motion:reduce){
-    #ndR47Loader .nd-r47-loader-mark{animation:none}
-  }
-</style>
-
-<script id="nd-r47-final-js">
-(function(){
-  'use strict';
-
-  function qs(s){return document.querySelector(s)}
-  function qsa(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
-
-  /* ---------- CHECKOUT / CARRINHO ---------- */
-  function checkoutIsOpen(){
-    var m=qs('#modalFinalizar');
-    return !!(m && m.classList.contains('ativo'));
-  }
-
-  function enforceCheckoutUI(){
-    var open=checkoutIsOpen();
-    document.body.classList.toggle('nd-r47-checkout-open',open);
-
-    if(open){
-      qsa('#carrinhoFlutuante,#ndFxCartbar,.nd-v3-buybar,.nd-fx-cartbar,.cart-bar,#ndR17BottomNav')
-        .forEach(function(el){
-          el.style.setProperty('display','none','important');
-          el.style.setProperty('visibility','hidden','important');
-          el.style.setProperty('opacity','0','important');
-          el.style.setProperty('pointer-events','none','important');
-        });
-    }
-  }
-
-  function observeCheckout(){
-    var modal=qs('#modalFinalizar');
-    if(!modal)return;
-    var obs=new MutationObserver(enforceCheckoutUI);
-    obs.observe(modal,{attributes:true,attributeFilter:['class']});
-    enforceCheckoutUI();
-  }
-
-  /* ---------- ROLAGEM: remover o patch antigo que mandava para o topo ---------- */
-  function unwrapR43(){
-    try{
-      if(typeof window.adicionar==='function' && window.adicionar.__ndR43Original){
-        window.adicionar=window.adicionar.__ndR43Original;
-      }
-    }catch(_){}
-  }
-
-  /*
-   * A posição é preservada, mas sem vários window.scrollTo concorrentes.
-   * O código original de adicionar() não faz scroll; portanto não precisamos
-   * de forçar a página para nenhum lugar.
-   */
-  function stabilizeAdd(){
-    var lastY=null,lastX=null;
-
-    document.addEventListener('pointerdown',function(e){
-      var el=e.target.closest('button,a,[role="button"],input[type="button"],input[type="submit"]');
-      if(!el)return;
-      var text=(el.innerText||el.value||el.getAttribute('aria-label')||'').toLowerCase();
-      var oc=(el.getAttribute('onclick')||'').toLowerCase();
-      if(!(/\b(comprar|adicionar|add)\b/.test(text)||/adicionar|addtocart|additem|comprar/.test(oc)))return;
-      lastY=window.pageYOffset||document.documentElement.scrollTop||0;
-      lastX=window.pageXOffset||document.documentElement.scrollLeft||0;
-    },true);
-
-    document.addEventListener('click',function(e){
-      var el=e.target.closest('button,a,[role="button"],input[type="button"],input[type="submit"]');
-      if(!el || lastY===null)return;
-      var text=(el.innerText||el.value||el.getAttribute('aria-label')||'').toLowerCase();
-      var oc=(el.getAttribute('onclick')||'').toLowerCase();
-      if(!(/\b(comprar|adicionar|add)\b/.test(text)||/adicionar|addtocart|additem|comprar/.test(oc)))return;
-
-      var y=lastY,x=lastX;
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          if(Math.abs((window.pageYOffset||0)-y)>2 ||
-             Math.abs((window.pageXOffset||0)-x)>2){
-            window.scrollTo({left:x,top:y,behavior:'auto'});
-          }
-        });
-      });
-      setTimeout(function(){
-        lastY=null;lastX=null;
-      },1200);
-    },true);
-  }
-
-  /* ---------- LOADER: fica pronto antes do restante aparecer ---------- */
-  function buildLoader(){
-    if(qs('#ndR47Loader'))return;
-
-    var el=document.createElement('div');
-    el.id='ndR47Loader';
-    el.innerHTML='<div class="nd-r47-loader-box"><div class="nd-r47-loader-mark"></div><span>CARREGANDO ND BURGS</span></div>';
-
-    document.body.appendChild(el);
-
-    var hide=function(){
-      setTimeout(function(){
-        var x=qs('#ndR47Loader');
-        if(x)x.classList.add('hide');
-      },80);
-    };
-
-    if(document.readyState==='complete') hide();
-    else window.addEventListener('load',hide,{once:true});
-
-    /* Não deixa uma conexão lenta prender o cliente */
-    setTimeout(hide,1800);
-  }
-
-  function boot(){
-    unwrapR43();
-    observeCheckout();
-    stabilizeAdd();
-    buildLoader();
-
-    /* O R43 antigo possuía timers de 500/1500/3000ms.
-       Reverte o wrapper depois do último timer também. */
-    setTimeout(unwrapR43,3300);
-    setTimeout(unwrapR43,3800);
-
-    setTimeout(enforceCheckoutUI,100);
-    setTimeout(enforceCheckoutUI,500);
-    setTimeout(enforceCheckoutUI,1200);
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',boot,{once:true});
-  }else{
-    boot();
-  }
-
-  window.addEventListener('pageshow',enforceCheckoutUI);
-})();
-</script>
-
-
-<!-- ND BURGS R48 — PROFISSIONAL / ESTABILIDADE / PERFORMANCE / CONVERSÃO -->
-<style id="nd-r48-pro-css">
-/* Checkout: uma única área de decisão, sem barras fixas atrapalhando */
-body.nd-r48-checkout-open{
-  overflow:hidden!important;
-  overscroll-behavior:none!important;
-}
-body.nd-r48-checkout-open #carrinhoFlutuante,
-body.nd-r48-checkout-open #ndFxCartbar,
-body.nd-r48-checkout-open #ndR17BottomNav,
-body.nd-r48-checkout-open .nd-v3-buybar,
-body.nd-r48-checkout-open .nd-fx-cartbar,
-body.nd-r48-checkout-open .cart-bar,
-body.nd-r48-checkout-open [class*="cartbar"],
-body.nd-r48-checkout-open [id*="cartbar"],
-body.nd-r48-checkout-open [id*="CarrinhoFlutuante"],
-body.nd-r48-checkout-open [id*="BottomNav"]{
+<!-- ND BURGS R48 ESTÁVEL — PATCH MÍNIMO -->
+<style id="nd-r48-stable-css">
+body.nd-r48-checkout #carrinhoFlutuante,
+body.nd-r48-checkout #ndFxCartbar,
+body.nd-r48-checkout .nd-v3-buybar,
+body.nd-r48-checkout .nd-fx-cartbar,
+body.nd-r48-checkout .cart-bar,
+body.nd-r48-checkout #ndR17BottomNav{
   display:none!important;
   visibility:hidden!important;
   pointer-events:none!important;
 }
-body.nd-r48-checkout-open #modalFinalizar{
-  z-index:2147483000!important;
-}
-
-/* Evita animações excessivas e deixa cliques mais claros */
-button,.btn,[role="button"]{touch-action:manipulation}
-button:focus-visible,.btn:focus-visible,[role="button"]:focus-visible{
-  outline:3px solid rgba(255,210,26,.9)!important;
-  outline-offset:2px!important;
-}
-
-/* Imagens: renderização mais rápida e menos "pulo" de layout */
-img{
-  content-visibility:auto;
-}
-img.nd-r48-eager{
-  content-visibility:visible!important;
-}
-.nd-r48-backtop{
-  position:fixed;right:16px;bottom:92px;z-index:1800;
-  width:44px;height:44px;border:1px solid rgba(255,210,26,.45);
-  border-radius:50%;background:rgba(8,8,8,.92);color:#ffd21a;
-  font-size:20px;font-weight:1000;cursor:pointer;
-  box-shadow:0 8px 25px rgba(0,0,0,.45);
-  opacity:0;transform:translateY(12px);pointer-events:none;
-  transition:.2s ease;
-}
-.nd-r48-backtop.nd-show{opacity:1;transform:none;pointer-events:auto}
-body.nd-r48-checkout-open .nd-r48-backtop{display:none!important}
-
-/* Micro-feedback de adição */
-.nd-r48-add-flash{
-  animation:ndR48AddFlash .42s ease;
-}
-@keyframes ndR48AddFlash{
-  0%{transform:scale(1)}
-  45%{transform:scale(1.035)}
-  100%{transform:scale(1)}
-}
-@media(max-width:700px){
-  .nd-r48-backtop{right:12px;bottom:78px;width:42px;height:42px}
-}
-@media(prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto!important}
-  .nd-r48-add-flash{animation:none}
-  .nd-r48-backtop{transition:none}
-}
+body.nd-r48-checkout{overflow:hidden!important;}
 </style>
-
-<script id="nd-r48-pro-js">
+<script id="nd-r48-stable-js">
 (function(){
-'use strict';
-
-var R48={lastScroll:0, checkout:false, loaderHidden:false};
-
-function qs(s){return document.querySelector(s)}
-function qsa(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
-
-function isCheckoutOpen(){
-  var m=qs('#modalFinalizar');
-  return !!(m && (m.classList.contains('ativo') ||
-                  m.classList.contains('active') ||
-                  m.style.display==='block' ||
-                  getComputedStyle(m).display==='flex'));
-}
-
-function syncCheckout(){
-  var open=isCheckoutOpen();
-  document.body.classList.toggle('nd-r48-checkout-open',open);
-  if(open){
-    if(!R48.checkout) R48.lastScroll=window.scrollY||window.pageYOffset||0;
-    R48.checkout=true;
-    document.documentElement.style.overscrollBehavior='none';
-  }else if(R48.checkout){
-    R48.checkout=false;
-    document.documentElement.style.overscrollBehavior='';
-    window.scrollTo(0,R48.lastScroll);
+  'use strict';
+  function modal(){return document.getElementById('modalFinalizar');}
+  function sync(){
+    var m=modal();
+    document.body.classList.toggle('nd-r48-checkout',!!(m&&m.classList.contains('ativo')));
   }
-}
-
-function hideLoader(){
-  if(R48.loaderHidden)return;
-  R48.loaderHidden=true;
-  var l=qs('#ndR48CriticalLoader');
-  if(l){
-    l.classList.add('nd-hide');
-    setTimeout(function(){if(l&&l.parentNode)l.parentNode.removeChild(l)},280);
-  }
-  document.documentElement.classList.remove('nd-r48-loading');
-  document.body.classList.remove('nd-r48-loading');
-}
-
-function setupImages(){
-  var imgs=qsa('img');
-  imgs.forEach(function(img,i){
-    if(i<8){
-      img.loading='eager';
-      img.fetchPriority='high';
-      img.classList.add('nd-r48-eager');
-    }else{
-      if(!img.getAttribute('loading')) img.loading='lazy';
-      img.decoding='async';
+  function boot(){
+    var m=modal();
+    if(m){
+      new MutationObserver(sync).observe(m,{attributes:true,attributeFilter:['class']});
     }
-    if(!img.getAttribute('decoding')) img.decoding='async';
-  });
-}
+    sync();
 
-function setupCheckoutObserver(){
-  var m=qs('#modalFinalizar');
-  if(!m)return;
-  syncCheckout();
-  if(!m.dataset.ndR48Observed){
-    m.dataset.ndR48Observed='1';
-    new MutationObserver(syncCheckout).observe(m,{attributes:true,attributeFilter:['class','style','aria-hidden']});
+    document.addEventListener('click',function(e){
+      var a=e.target.closest('a[href="#"]');
+      if(!a)return;
+      var oc=(a.getAttribute('onclick')||'').toLowerCase();
+      if(/adicionar|comprar|additem|addtocart/.test(oc)) e.preventDefault();
+    },true);
   }
-}
-
-function setupScrollProtection(){
-  document.addEventListener('click',function(e){
-    var el=e.target.closest && e.target.closest(
-      '[onclick*="adicionar"],[onclick*="Adicionar"],button[data-produto],.btn-adicionar,.adicionar'
-    );
-    if(!el)return;
-    var y=window.scrollY||window.pageYOffset||0;
-    setTimeout(function(){
-      if(!isCheckoutOpen() && Math.abs((window.scrollY||window.pageYOffset||0)-y)>2){
-        window.scrollTo(0,y);
-      }
-    },0);
-    setTimeout(function(){
-      if(!isCheckoutOpen() && Math.abs((window.scrollY||window.pageYOffset||0)-y)>2){
-        window.scrollTo(0,y);
-      }
-    },180);
-  },true);
-}
-
-function setupAddFeedback(){
-  document.addEventListener('click',function(e){
-    var b=e.target.closest && e.target.closest(
-      '[onclick*="adicionar"],[onclick*="Adicionar"],button[data-produto],.btn-adicionar,.adicionar'
-    );
-    if(!b)return;
-    b.classList.remove('nd-r48-add-flash');
-    void b.offsetWidth;
-    b.classList.add('nd-r48-add-flash');
-  },true);
-}
-
-function setupBackTop(){
-  var b=document.createElement('button');
-  b.type='button';
-  b.className='nd-r48-backtop';
-  b.id='ndR48BackTop';
-  b.setAttribute('aria-label','Voltar ao topo');
-  b.textContent='↑';
-  b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
-  document.body.appendChild(b);
-  function upd(){
-    b.classList.toggle('nd-show',(window.scrollY||0)>700);
-  }
-  window.addEventListener('scroll',upd,{passive:true});
-  upd();
-}
-
-function setupSeoAndTheme(){
-  if(!document.querySelector('meta[name="theme-color"]')){
-    var m=document.createElement('meta');m.name='theme-color';m.content='#050505';document.head.appendChild(m);
-  }
-  if(!document.querySelector('meta[name="description"]')){
-    var d=document.createElement('meta');d.name='description';
-    d.content='ND BURGS — faça seu pedido online de hambúrgueres, combos, bebidas e sobremesas.';
-    document.head.appendChild(d);
-  }
-}
-
-function boot(){
-  setupImages();
-  setupCheckoutObserver();
-  setupScrollProtection();
-  setupAddFeedback();
-  setupBackTop();
-  setupSeoAndTheme();
-
-  var bodyObs=new MutationObserver(function(){
-    setupCheckoutObserver();
-    syncCheckout();
-  });
-  bodyObs.observe(document.body,{childList:true,subtree:true});
-
-  window.addEventListener('resize',syncCheckout,{passive:true});
-  document.addEventListener('visibilitychange',syncCheckout);
-
-  // Some legacy patches finish installing after a few seconds; R48 keeps the
-  // final behavior stable without replacing the site's real cart functions.
-  [0,120,500,1200,2500,4000].forEach(function(t){setTimeout(syncCheckout,t)});
-
-  if(document.readyState==='complete') hideLoader();
-  else window.addEventListener('load',hideLoader,{once:true});
-  setTimeout(hideLoader,2200);
-}
-
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
-else boot();
-
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
 })();
 </script>
 
