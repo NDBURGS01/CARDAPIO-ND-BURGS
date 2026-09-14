@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260914-R46">
+<meta name="nd-site-version" content="20260914-R46-F4">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260914-R46";
+  const ND_SITE_VERSION = "20260914-R46-F4";
   const KEY = "ndburgs_site_version";
   try {
     const old = localStorage.getItem(KEY);
@@ -5092,10 +5092,12 @@ select option{background:#111;color:#fff}
 <script id="nd-v4-logic">
 (function(){
 'use strict';
-const MIN=11.90;
+const MIN_DELIVERY=17.00;
 const WA='5511963973846';
 function cart(){try{return (typeof carrinho!=='undefined'&&Array.isArray(carrinho))?carrinho:(window.carrinho||[])}catch(e){return window.carrinho||[]}}
 function money(v){return 'R$ '+Number(v||0).toFixed(2).replace('.',',')}
+function getFee(street){try{const t=window.taxas||window.TAXAS||window.taxasEntrega||{}; const v=t?.[street]; return Number(v)||0}catch(e){return 0}}
+function q(id){return document.getElementById(id)}
 function subtotal(){return cart().reduce((s,i)=>s+(Number(i.preco)||0)*(Number(i.quantidade)||1),0)}
 function saveLast(){try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}}
 function clearCart(){
@@ -5116,8 +5118,8 @@ function buildCheckout(){
    <div class="nd-v4-step active" data-step="1">1 • DADOS</div><div class="nd-v4-step" data-step="2">2 • ENTREGA</div><div class="nd-v4-step" data-step="3">3 • PAGAMENTO</div><div class="nd-v4-step" data-step="4">4 • CONFIRMAR</div>
   </div>
   <div class="nd-v4-step-content active" data-content="1">
-    <label>Seu nome</label><input id="nomeModal" type="text" placeholder="Como podemos te chamar?">
-    <label>WhatsApp</label><input id="telefoneModal" type="tel" placeholder="(11) 99999-9999">
+    <label>Seu nome</label><input id="ndV4Nome" type="text" placeholder="Como podemos te chamar?">
+    <label>WhatsApp</label><input id="ndV4Telefone" type="tel" placeholder="(11) 99999-9999">
     <div class="nd-v4-delivery-estimate" style="margin-top:14px">🔒 <b>Seus dados ficam apenas para realizar seu pedido.</b></div>
     <button class="nd-v4-next" type="button" onclick="ndNext(1)">CONTINUAR →</button>
   </div>
@@ -5127,14 +5129,14 @@ function buildCheckout(){
       <button type="button" class="nd-v4-pay active" data-type="ENTREGA" onclick="ndTipo('ENTREGA')">🛵<br>DELIVERY</button>
       <button type="button" class="nd-v4-pay" data-type="RETIRADA" onclick="ndTipo('RETIRADA')">🏪<br>RETIRADA</button>
     </div>
-    <select id="tipoPedidoModal" style="display:none"><option value="ENTREGA">ENTREGA</option><option value="RETIRADA">RETIRADA</option></select>
-    <div id="enderecoAreaModal">
+    <select id="ndV4TipoPedido" style="display:none"><option value="ENTREGA">ENTREGA</option><option value="RETIRADA">RETIRADA</option></select>
+    <div id="ndV4EnderecoArea">
       <label>Pesquise sua rua</label>
       <input id="ruaBuscaModal" type="search" autocomplete="off" placeholder="🔎 Digite o nome da rua">
-      <select id="ruaModal" onchange="calcularTaxaModal()"><option value="">Selecione sua rua</option></select>
-      <label>Número</label><input id="numeroModal" type="text" placeholder="Número">
-      <label>Complemento <small>(opcional)</small></label><input id="complementoModal" type="text" placeholder="Casa, apto, bloco...">
-      <div id="avisoTaxaModal" class="aviso-taxa" style="display:none"></div>
+      <select id="ndV4Rua" onchange="calcularTaxaModal()"><option value="">Selecione sua rua</option></select>
+      <label>Número</label><input id="ndV4Numero" type="text" placeholder="Número">
+      <label>Complemento <small>(opcional)</small></label><input id="ndV4Complemento" type="text" placeholder="Casa, apto, bloco...">
+      <div id="ndV4AvisoTaxa" class="aviso-taxa" style="display:none"></div>
     </div>
     <div id="ndRetiradaInfo" style="display:none" class="nd-v4-delivery-estimate">🏪 <b>Retirada no local</b><br>Sem taxa de entrega.</div>
     <div class="nd-v4-delivery-estimate">🕐 <b>Estimativa:</b> normalmente 40–50 minutos após a confirmação.</div>
@@ -5148,10 +5150,10 @@ function buildCheckout(){
       <button type="button" class="nd-v4-pay" data-pay="DINHEIRO" onclick="ndPay('DINHEIRO')">💵<br>DINHEIRO</button>
       <button type="button" class="nd-v4-pay" data-pay="CARTÃO" onclick="ndPay('CARTÃO')">💳<br>CARTÃO</button>
     </div>
-    <select id="pagamentoModal" style="display:none"><option value="">Selecione</option><option value="PIX">PIX</option><option value="DINHEIRO">DINHEIRO</option><option value="CARTÃO">CARTÃO</option></select>
-    <div id="trocoAreaModal" style="display:none;margin-top:12px"><label>Troco para quanto?</label><input id="trocoModal" type="number" step="0.01" placeholder="Ex.: 50"></div>
+    <select id="ndV4Pagamento" style="display:none"><option value="">Selecione</option><option value="PIX">PIX</option><option value="DINHEIRO">DINHEIRO</option><option value="CARTÃO">CARTÃO</option></select>
+    <div id="ndV4TrocoArea" style="display:none;margin-top:12px"><label>Troco para quanto?</label><input id="ndV4Troco" type="number" step="0.01" placeholder="Ex.: 50"></div>
     <label style="margin-top:14px">Observação <small>(opcional)</small></label>
-    <textarea id="observacaoModal" placeholder="Ex.: sem cebola, tocar campainha..."></textarea>
+    <textarea id="ndV4Observacao" placeholder="Ex.: sem cebola, tocar campainha..."></textarea>
     <button class="nd-v4-next" type="button" onclick="ndNext(3)">CONFIRA SEU ITENS DO PEDIDO ANTES DE FINALIZAR→</button>
     <button class="nd-v4-back" type="button" onclick="ndBack(3)">← VOLTAR</button>
   </div>
@@ -5171,10 +5173,10 @@ function buildCheckout(){
 function loadModalData(){
  const n=localStorage.getItem('ndburgs_nome')||localStorage.getItem('ndburgs_nomeModal')||'';
  const t=localStorage.getItem('ndburgs_telefone')||localStorage.getItem('ndburgs_telefoneModal')||'';
- if(n)document.getElementById('nomeModal').value=n;if(t)document.getElementById('telefoneModal').value=t;
+ if(n)document.getElementById('ndV4Nome').value=n;if(t)document.getElementById('ndV4Telefone').value=t;
  if(typeof carregarRuasModal==='function') carregarRuasModal();
- document.getElementById('tipoPedidoModal').value='ENTREGA';
- document.getElementById('pagamentoModal').value='';
+ document.getElementById('ndV4TipoPedido').value='ENTREGA';
+ document.getElementById('ndV4Pagamento').value='';
 }
 function ndStep(n){
  document.querySelectorAll('.nd-v4-step-content').forEach(x=>x.classList.toggle('active',x.dataset.content==n));
@@ -5182,64 +5184,67 @@ function ndStep(n){
  const panel=document.querySelector('#modalFinalizar .painel-finalizar'); if(panel)panel.scrollTop=0;
  if(n===4)ndSummary();
 }
+function ndCurrentTotal(){const tipo=q('ndV4TipoPedido')?.value||'ENTREGA', rua=q('ndV4Rua')?.value||''; return subtotal()+(tipo==='ENTREGA'?getFee(rua):0)}
 function ndNext(n){
  if(n===1){
-  const nome=document.getElementById('nomeModal').value.trim(), tel=document.getElementById('telefoneModal').value.replace(/\D/g,'');
+  const nome=document.getElementById('ndV4Nome').value.trim(), tel=document.getElementById('ndV4Telefone').value.replace(/\D/g,'');
   if(!nome)return alert('Digite seu nome.');
   if(tel.length<10||tel.length>11)return alert('Digite um WhatsApp válido com DDD.');
-  localStorage.setItem('ndburgs_nomeModal',nome);localStorage.setItem('ndburgs_telefoneModal',document.getElementById('telefoneModal').value.trim());
+  localStorage.setItem('ndburgs_nomeModal',nome);localStorage.setItem('ndburgs_telefoneModal',document.getElementById('ndV4Telefone').value.trim());
  }
  if(n===2){
-  const tipo=document.getElementById('tipoPedidoModal').value;
+  const tipo=document.getElementById('ndV4TipoPedido').value;
   if(tipo==='ENTREGA'){
-   if(!document.getElementById('ruaModal').value)return alert('Selecione sua rua.');
-   if(!document.getElementById('numeroModal').value.trim())return alert('Digite o número do endereço.');
+   if(!document.getElementById('ndV4Rua').value)return alert('Selecione sua rua.');
+   if(!document.getElementById('ndV4Numero').value.trim())return alert('Digite o número do endereço.');
   }
  }
  if(n===3){
-  if(!document.getElementById('pagamentoModal').value)return alert('Escolha uma forma de pagamento.');
+  const pay=q('ndV4Pagamento')?.value||'';
+  if(!pay)return alert('Escolha uma forma de pagamento.');
+  if(pay==='DINHEIRO'){const troco=Number(q('ndV4Troco')?.value||0), total=ndCurrentTotal(); if(!troco||troco<total)return alert('Informe um valor de troco válido, maior ou igual ao total do pedido.');}
  }
  ndStep(n+1);
 }
 window.ndNext=ndNext;
 window.ndBack=n=>ndStep(n-1);
 window.ndTipo=function(tipo){
- document.getElementById('tipoPedidoModal').value=tipo;
+ document.getElementById('ndV4TipoPedido').value=tipo;
  document.querySelectorAll('[data-type]').forEach(b=>b.classList.toggle('active',b.dataset.type===tipo));
- const area=document.getElementById('enderecoAreaModal'),ri=document.getElementById('ndRetiradaInfo');
+ const area=document.getElementById('ndV4EnderecoArea'),ri=document.getElementById('ndRetiradaInfo');
  if(area)area.style.display=tipo==='ENTREGA'?'block':'none'; if(ri)ri.style.display=tipo==='RETIRADA'?'block':'none';
  if(typeof calcularTaxaModal==='function')calcularTaxaModal();
 }
 window.ndPay=function(pay){
- document.getElementById('pagamentoModal').value=pay;
+ document.getElementById('ndV4Pagamento').value=pay;
  document.querySelectorAll('[data-pay]').forEach(b=>b.classList.toggle('active',b.dataset.pay===pay));
- document.getElementById('trocoAreaModal').style.display=pay==='DINHEIRO'?'block':'none';
+ document.getElementById('ndV4TrocoArea').style.display=pay==='DINHEIRO'?'block':'none';
 }
 function ndSummary(){
- const tipo=document.getElementById('tipoPedidoModal').value, rua=document.getElementById('ruaModal').value;
- const fee=tipo==='ENTREGA'?Number(window.taxas?.[rua]||0):0, sub=subtotal();
+ const tipo=document.getElementById('ndV4TipoPedido').value, rua=document.getElementById('ndV4Rua').value;
+ const fee=tipo==='ENTREGA'?getFee(rua):0, sub=subtotal();
  document.getElementById('ndV4Sub').textContent=money(sub);document.getElementById('ndV4Fee').textContent=money(fee);document.getElementById('ndV4Total').textContent=money(sub+fee);
  document.getElementById('ndV4Items').innerHTML=cart().map(i=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #222"><span>${i.quantidade}x ${i.nome}${i.detalhes?.length?'<small style="display:block;color:#777">↳ '+i.detalhes.join(', ')+'</small>':''}</span><b>${money(i.preco*i.quantidade)}</b></div>`).join('');
 }
 window.ndSummary=ndSummary;
 window.finalizarPedidoModal=function(){
  if(!cart().length)return alert('Seu carrinho está vazio.');
- const nome=document.getElementById('nomeModal').value.trim();
- const telefone=document.getElementById('telefoneModal').value.trim();
+ const nome=document.getElementById('ndV4Nome').value.trim();
+ const telefone=document.getElementById('ndV4Telefone').value.trim();
  const telNum=telefone.replace(/\D/g,'');
- const tipo=document.getElementById('tipoPedidoModal').value;
- const rua=document.getElementById('ruaModal').value;
- const numero=document.getElementById('numeroModal').value.trim();
- const complemento=document.getElementById('complementoModal').value.trim();
- const pagamento=document.getElementById('pagamentoModal').value;
- const troco=document.getElementById('trocoModal').value;
- const obs=document.getElementById('observacaoModal').value.trim();
+ const tipo=document.getElementById('ndV4TipoPedido').value;
+ const rua=document.getElementById('ndV4Rua').value;
+ const numero=document.getElementById('ndV4Numero').value.trim();
+ const complemento=document.getElementById('ndV4Complemento').value.trim();
+ const pagamento=document.getElementById('ndV4Pagamento').value;
+ const troco=document.getElementById('ndV4Troco').value;
+ const obs=document.getElementById('ndV4Observacao').value.trim();
  if(!nome)return alert('Digite seu nome.');
  if(telNum.length<10||telNum.length>11)return alert('Digite um WhatsApp válido com DDD.');
  if(tipo==='ENTREGA'&&(!rua||!numero))return alert('Complete seu endereço.');
  if(!pagamento)return alert('Escolha o pagamento.');
- const fee=tipo==='ENTREGA'?Number(window.taxas?.[rua]||0):0, sub=subtotal(), total=sub+fee;
- if(sub<MIN)return alert('O pedido mínimo é '+money(MIN)+'. Faltam '+money(MIN-sub)+'.');
+ const fee=tipo==='ENTREGA'?getFee(rua):0, sub=subtotal(), total=sub+fee;
+ if(tipo==='ENTREGA' && sub<MIN_DELIVERY)return alert('O pedido mínimo para DELIVERY é '+money(MIN_DELIVERY)+'. Faltam '+money(MIN_DELIVERY-sub)+'.');
  const lines=[];
  lines.push('🍔 *NOVO PEDIDO - ND BURGS*','━━━━━━━━━━━━━━━━━━━━');
  lines.push('👤 *CLIENTE:* '+nome,'📱 *WHATSAPP:* '+telefone,'📦 *TIPO:* '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA'));
@@ -5247,7 +5252,7 @@ window.finalizarPedidoModal=function(){
  lines.push('','🛒 *ITENS DO PEDIDO*','━━━━━━━━━━━━━━━━━━━━');
  cart().forEach(i=>{lines.push(`${i.quantidade}x ${i.nome} — ${money(i.preco*i.quantidade)}`);if(i.detalhes?.length)lines.push('   ↳ '+i.detalhes.join(', '));});
  lines.push('','💰 *SUBTOTAL:* '+money(sub),'🛵 *TAXA:* '+money(fee),'💵 *TOTAL:* '+money(total),'💳 *PAGAMENTO:* '+pagamento);
- if(pagamento==='DINHEIRO'&&troco)lines.push('💵 *TROCO PARA:* '+money(Number(troco)));
+ if(pagamento==='DINHEIRO'){const trocoNum=Number(troco||0);if(!trocoNum||trocoNum<total)return alert('Informe um valor de troco válido, maior ou igual ao total do pedido.');lines.push('💵 *TROCO PARA:* '+money(trocoNum));}
  if(obs)lines.push('','📝 *OBSERVAÇÃO:* '+obs);
  lines.push('','━━━━━━━━━━━━━━━━━━━━','ND BURGS 🍔');
  saveLast();
@@ -5265,7 +5270,7 @@ window.irParaFinalizarPedido=function(){
  buildCheckout();ndStep(1);
 }
 function ndFilterStreet(){
- const inp=document.getElementById('ruaBuscaModal'),sel=document.getElementById('ruaModal');if(!inp||!sel||inp.dataset.ndV4)return;
+ const inp=document.getElementById('ruaBuscaModal'),sel=document.getElementById('ndV4Rua');if(!inp||!sel||inp.dataset.ndV4)return;
  inp.dataset.ndV4='1';
  inp.addEventListener('input',()=>{
   const q=inp.value.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -12187,6 +12192,199 @@ window.NDBURGS_FASE1={version:'20260914',getAddress:getAddress,saveAddress:saveA
   }catch(e){}
 
   window.NDBURGS_FASE2={version:'20260914',refresh:refresh,cartQuantity:qty};
+})();
+</script>
+
+<!-- ============================================================
+ ND BURGS — FASE 3 / CHECKOUT SEGURO E SEM CONFLITO DE IDs — 20260914
+ Objetivo: corrigir o checkout em 4 etapas, especialmente os IDs duplicados
+ entre o formulário principal e o modal, validação, endereço, pagamento e troco.
+============================================================ -->
+<style id="nd-fase3-checkout-css">
+#modalFinalizar .nd-f3-error{border-color:#e50914!important;box-shadow:0 0 0 3px rgba(229,9,20,.12)!important}
+#modalFinalizar .nd-f3-ok{border-color:#25d366!important;box-shadow:0 0 0 3px rgba(37,211,102,.08)!important}
+#modalFinalizar .nd-f3-alert{margin:10px 0;padding:11px 12px;border-radius:11px;background:#160d0d;border:1px solid #5b2020;color:#ffb4b4;font-size:12px;font-weight:800;line-height:1.4}
+#modalFinalizar .nd-f3-street-help{margin:7px 0 0;color:#8f8f96;font-size:11px;line-height:1.4}
+#modalFinalizar .nd-f3-street-valid{margin-top:7px;color:#25d366;font-size:11px;font-weight:900}
+#modalFinalizar .nd-f3-troco-hint{margin-top:7px;color:#8f8f96;font-size:11px}
+</style>
+<script id="nd-fase3-checkout-js">
+(function(){
+'use strict';
+if(window.__NDBURGS_FASE3__)return;
+window.__NDBURGS_FASE3__=true;
+
+const MIN_DELIVERY=17.00;
+const WA='5511963973846';
+const $=s=>document.querySelector(s);
+const modal=()=>document.getElementById('modalFinalizar');
+const mq=s=>document.querySelector('#modalFinalizar '+s);
+const mget=id=>document.querySelector('#modalFinalizar #'+id);
+function cart(){try{return Array.isArray(window.carrinho)?window.carrinho:[]}catch(e){return []}}
+function money(v){return 'R$ '+Number(v||0).toFixed(2).replace('.',',')}
+function subtotal(){return cart().reduce((sum,i)=>sum+(Number(i.preco)||0)*(Math.max(1,Number(i.quantidade)||1)),0)}
+function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim()}
+function streets(){
+ try{return Object.keys(window.taxas||{}).filter(k=>!['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(norm(k)))}catch(e){return []}
+}
+function findStreet(v){const n=norm(v);return streets().find(s=>norm(s)===n)||null}
+function showErr(input,msg){
+ if(input){input.classList.add('nd-f3-error');input.focus();setTimeout(()=>input.classList.remove('nd-f3-error'),1800)}
+ let box=mq('.nd-f3-alert');
+ if(!box){box=document.createElement('div');box.className='nd-f3-alert';const active=mq('.nd-v4-step-content.active');if(active)active.prepend(box)}
+ box.textContent=msg;box.scrollIntoView({block:'nearest',behavior:'smooth'});
+ return false;
+}
+function clearErr(){const box=mq('.nd-f3-alert');if(box)box.remove()}
+function saveProfile(){
+ const n=mget('nomeModal'),t=mget('telefoneModal');
+ if(n)localStorage.setItem('ndburgs_nomeModal',n.value.trim());
+ if(t)localStorage.setItem('ndburgs_telefoneModal',t.value.trim());
+}
+function refreshSummary(){
+ const tipo=mget('tipoPedidoModal')?.value||'ENTREGA';
+ const rua=mget('ruaModal')?.value||'';
+ const fee=tipo==='ENTREGA'?Number((window.taxas||{})[rua]||0):0;
+ const sub=subtotal(),total=sub+fee;
+ const subEl=mget('ndV4Sub'),feeEl=mget('ndV4Fee'),totEl=mget('ndV4Total'),itemsEl=mget('ndV4Items');
+ if(subEl)subEl.textContent=money(sub);if(feeEl)feeEl.textContent=money(fee);if(totEl)totEl.textContent=money(total);
+ if(itemsEl){itemsEl.innerHTML=cart().map(i=>{
+   const q=Math.max(1,Number(i.quantidade)||1),p=Number(i.preco)||0;
+   const det=Array.isArray(i.detalhes)&&i.detalhes.length?'<small style="display:block;color:#777">↳ '+i.detalhes.join(', ')+'</small>':'';
+   return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #222"><span>'+q+'x '+i.nome+det+'</span><b>'+money(p*q)+'</b></div>';
+ }).join('')}
+}
+function step(n){
+ mq('.nd-v4-step-content') && document.querySelectorAll('#modalFinalizar .nd-v4-step-content').forEach(x=>x.classList.toggle('active',x.dataset.content==n));
+ document.querySelectorAll('#modalFinalizar .nd-v4-step').forEach(x=>{const v=Number(x.dataset.step);x.classList.toggle('active',v===n);x.classList.toggle('done',v<n)});
+ const p=mq('.painel-finalizar');if(p)p.scrollTop=0;
+ clearErr();if(n===4)refreshSummary();
+}
+function validateStep1(){
+ const n=mget('nomeModal'),t=mget('telefoneModal');
+ const name=n?.value.trim()||'',tel=(t?.value||'').replace(/\D/g,'');
+ if(!name)return showErr(n,'Digite seu nome para continuar.');
+ if(tel.length<10||tel.length>11)return showErr(t,'Digite um WhatsApp válido com DDD.');
+ saveProfile();return true;
+}
+function validateStep2(){
+ const type=mget('tipoPedidoModal')?.value||'ENTREGA';
+ if(type==='RETIRADA')return true;
+ const street=mget('ruaModal'),num=mget('numeroModal');
+ const key=findStreet(street?.value||'');
+ if(!key)return showErr(street,'Selecione uma rua atendida pela ND BURGS. Digite parte do nome e escolha uma das opções.');
+ if(street)street.value=key;
+ if(!num?.value.trim())return showErr(num,'Digite o número do endereço.');
+ return true;
+}
+function validateStep3(){
+ const pay=mget('pagamentoModal')?.value||'';
+ if(!pay)return showErr(mq('[data-content="3"] .nd-v4-pay'),'Escolha uma forma de pagamento.');
+ if(pay==='DINHEIRO'){
+   const troco=Number(mget('trocoModal')?.value||0),total=currentTotal();
+   if(!troco)return showErr(mget('trocoModal'),'Digite para quanto precisa de troco.');
+   if(troco<total)return showErr(mget('trocoModal'),'O valor do troco deve ser maior ou igual ao total do pedido ('+money(total)+').');
+ }
+ return true;
+}
+function currentTotal(){
+ const type=mget('tipoPedidoModal')?.value||'ENTREGA',street=mget('ruaModal')?.value||'';
+ const fee=type==='ENTREGA'?Number((window.taxas||{})[street]||0):0;return subtotal()+fee;
+}
+function goNext(n){
+ if(n===1&&!validateStep1())return;
+ if(n===2&&!validateStep2())return;
+ if(n===3&&!validateStep3())return;
+ step(n+1);
+}
+function goBack(n){step(Math.max(1,n-1))}
+window.ndNext=goNext;window.ndBack=goBack;
+window.ndStep=step;
+window.ndTipo=function(type){
+ const sel=mget('tipoPedidoModal');if(sel)sel.value=type;
+ document.querySelectorAll('#modalFinalizar [data-type]').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
+ const area=mget('enderecoAreaModal'),info=mget('ndRetiradaInfo');
+ if(area)area.style.display=type==='ENTREGA'?'block':'none';if(info)info.style.display=type==='RETIRADA'?'block':'none';
+ if(typeof window.calcularTaxaModal==='function')try{window.calcularTaxaModal()}catch(e){}
+ refreshSummary();
+};
+window.ndPay=function(pay){
+ const sel=mget('pagamentoModal');if(sel)sel.value=pay;
+ document.querySelectorAll('#modalFinalizar [data-pay]').forEach(b=>b.classList.toggle('active',b.dataset.pay===pay));
+ const area=mget('trocoAreaModal');if(area)area.style.display=pay==='DINHEIRO'?'block':'none';
+};
+function finish(){
+ if(!cart().length)return alert('Seu carrinho está vazio.');
+ if(!validateStep1()){step(1);return} if(!validateStep2()){step(2);return} if(!validateStep3()){step(3);return}
+ const nome=mget('nomeModal').value.trim(),telefone=mget('telefoneModal').value.trim();
+ const tipo=mget('tipoPedidoModal').value||'ENTREGA',rua=findStreet(mget('ruaModal').value||'')||'',numero=mget('numeroModal').value.trim(),comp=mget('complementoModal')?.value.trim()||'';
+ const pagamento=mget('pagamentoModal').value,troco=mget('trocoModal')?.value||'',obs=mget('observacaoModal')?.value.trim()||'';
+ const fee=tipo==='ENTREGA'?Number((window.taxas||{})[rua]||0):0,sub=subtotal(),total=sub+fee;
+ if(tipo==='ENTREGA'&&sub<MIN_DELIVERY)return showErr(null,'Para DELIVERY, o pedido mínimo é R$ 17,00. Faltam '+money(MIN_DELIVERY-sub)+'.');
+ const lines=['🍔 *NOVO PEDIDO - ND BURGS*','━━━━━━━━━━━━━━━━━━━━','👤 *CLIENTE:* '+nome,'📱 *WHATSAPP:* '+telefone,'📦 *TIPO:* '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
+ if(tipo==='ENTREGA'){lines.push('📍 *ENDEREÇO:* '+rua+', Nº '+numero);if(comp)lines.push('🏠 *COMPLEMENTO:* '+comp)}
+ lines.push('','🛒 *ITENS DO PEDIDO*','━━━━━━━━━━━━━━━━━━━━');
+ cart().forEach(i=>{const q=Math.max(1,Number(i.quantidade)||1),p=Number(i.preco)||0;lines.push(q+'x '+i.nome+' — '+money(p*q));if(Array.isArray(i.detalhes)&&i.detalhes.length)lines.push('   ↳ '+i.detalhes.join(', '));});
+ lines.push('','💰 *SUBTOTAL:* '+money(sub),'🛵 *TAXA:* '+money(fee),'💵 *TOTAL:* '+money(total),'💳 *PAGAMENTO:* '+pagamento);
+ if(pagamento==='DINHEIRO')lines.push('💵 *TROCO PARA:* '+money(Number(troco)));
+ if(obs)lines.push('','📝 *OBSERVAÇÃO:* '+obs);lines.push('','━━━━━━━━━━━━━━━━━━━━','ND BURGS 🍔');
+ try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
+ const url='https://wa.me/'+WA+'?text='+encodeURIComponent(lines.join('\n'));
+ try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
+ try{if(typeof window.atualizarCarrinho==='function')window.atualizarCarrinho()}catch(e){}
+ try{if(typeof window.fecharModalFinalizar==='function')window.fecharModalFinalizar()}catch(e){}
+ window.location.href=url;
+}
+window.finalizarPedidoModal=finish;
+window.ndFase3Finish=finish;
+
+function bindStreet(){
+ const inp=mget('ruaBuscaModal'),sel=mget('ruaModal');if(!inp||!sel||inp.dataset.ndF3)return;inp.dataset.ndF3='1';
+ const render=()=>{
+   const q=norm(inp.value);let found=0;
+   [...sel.options].forEach((o,i)=>{if(i===0)return;const ok=!q||norm(o.textContent).includes(q);o.hidden=!ok;if(ok&&q)found++});
+   if(q&&!found){inp.classList.add('nd-f3-error');inp.dataset.valid='0';}
+   else if(q&&found){inp.classList.remove('nd-f3-error');inp.dataset.valid='1';}
+ };
+ inp.addEventListener('input',render);
+ inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const first=[...sel.options].find((o,i)=>i>0&&!o.hidden);if(first){sel.value=first.value;inp.value=first.value;sel.dispatchEvent(new Event('change',{bubbles:true}));render()}}});
+ sel.addEventListener('change',()=>{if(sel.value)inp.value=sel.value;render();refreshSummary()});
+}
+function repairModalFields(){
+ const m=modal();if(!m)return;
+ const names=['nomeModal','telefoneModal','tipoPedidoModal','ruaBuscaModal','ruaModal','numeroModal','complementoModal','pagamentoModal','trocoModal','observacaoModal'];
+ names.forEach(id=>{const el=m.querySelector('#'+id);if(el)el.setAttribute('data-nd-f3','1')});
+ bindStreet();
+ const type=mget('tipoPedidoModal');if(type&&type.value)window.ndTipo(type.value);
+}
+function patchBuild(){
+ if(typeof window.buildCheckout==='function'&&!window.buildCheckout.__ndF3){const old=window.buildCheckout;window.buildCheckout=function(){const r=old.apply(this,arguments);setTimeout(repairModalFields,20);setTimeout(()=>{repairModalFields();if(mget('tipoPedidoModal'))window.ndTipo(mget('tipoPedidoModal').value||'ENTREGA')},120);return r};window.buildCheckout.__ndF3=true}
+}
+function boot(){patchBuild();repairModalFields();setTimeout(()=>{patchBuild();repairModalFields()},300);setTimeout(()=>{patchBuild();repairModalFields()},1000)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('nd:addressSaved',repairModalFields);
+})();
+</script>
+
+<script id="nd-fase4-stability">
+(function(){
+  'use strict';
+  window.ND_BURGS_FASE4={version:'20260914-F4',errors:[]};
+  window.addEventListener('error',function(e){
+    try{window.ND_BURGS_FASE4.errors.push({type:'error',message:String(e.message||'Erro'),source:String(e.filename||''),line:e.lineno||0});}
+    catch(_){}
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    try{window.ND_BURGS_FASE4.errors.push({type:'promise',message:String(e.reason?.message||e.reason||'Promise rejeitada')});}
+    catch(_){}
+  });
+  window.ND_BURGS_FASE4.health=function(){
+    const required=['modalFinalizar'];
+    const missing=required.filter(id=>!document.getElementById(id));
+    const dup={};
+    document.querySelectorAll('[id]').forEach(el=>{const id=el.id;dup[id]=(dup[id]||0)+1;});
+    return {ok:missing.length===0 && Object.values(dup).every(n=>n===1),missing,duplicateIds:Object.entries(dup).filter(([,n])=>n>1),errors:window.ND_BURGS_FASE4.errors.slice()};
+  };
 })();
 </script>
 </body>
