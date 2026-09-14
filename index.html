@@ -912,7 +912,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 🍨 AÇAÍS - MILKSHAKES - SOBREMESAS
 </button>
 
-<button class="categoria-btn" onclick="irPara('adicionais')">
+<button class="categoria-btn" onclick="irPara('turbine seu lanche')">
 ➕ TURBINE SEU LANCHE 
 </button>
 
@@ -1214,7 +1214,7 @@ ESCOLHER SABOR
 <section id="sobremesas" class="categoria">
 
 <div class="categoria-titulo">
-🍨 AÇAÍS - MILKSHAKES E SOBREMESAS
+🍨 AÇAÍS - MILKSHAKES - SOBREMESAS
 </div>
 
 <div class="produtos">
@@ -6043,7 +6043,7 @@ section.categoria.nd15-target.nd15-highlight{animation:nd15Flash .7s ease}
     if(document.getElementById('nd15NavWrap')) return;
     var sections=Array.prototype.slice.call(document.querySelectorAll('section.categoria'));
     if(!sections.length) return;
-    var names=['Combos','Tradicionais','Artesanais','Porções','Pastéis','Açaís - Milkshakes e Sobremesas','Bebidas','Adicionais'];
+    var names=['Combos','Tradicionais','Artesanais','Porções','Pastéis','Açaís - Milkshakes - Sobremesas','Bebidas','Adicionais'];
     var icons=['❤️','🍔','🔥','🍟','🥟','🍨','🥤','➕'];
     var used=[], nav=document.createElement('div'); nav.id='nd15NavWrap';
     var bar=document.createElement('nav'); bar.id='nd15Nav'; bar.setAttribute('aria-label','Categorias do cardápio');
@@ -6812,7 +6812,7 @@ function renderBest(){
 }
 function buildQuickNav(){
  if($('#nd20QuickNav'))return;const menu=$('.categoria-menu');if(!menu)return;const wrap=document.createElement('div');wrap.id='nd20QuickNav';wrap.innerHTML='<div id="nd20QuickCats"></div><button id="nd20Finish" type="button">FINALIZAR PEDIDO →</button>';menu.parentNode.insertBefore(wrap,menu);
- const cats=$$('.categoria');const names=['COMBOS','TRADICIONAIS','ARTESANAIS','PORÇÕES','PASTÉIS','AÇAÍS - MILKSHAKES E SOBREMESAS','BEBIDAS','ADICIONAIS'];const icons=['❤️','🍔','🔥','🍟','🥟','🍨','🥤','➕'];const box=$('#nd20QuickCats');cats.forEach((cat,i)=>{const b=document.createElement('button');b.type='button';b.className='nd20-qcat';b.textContent=(icons[i]||'•')+' '+(names[i]||('CATEGORIA '+(i+1)));b.onclick=()=>cat.scrollIntoView({behavior:'smooth',block:'start'});box.appendChild(b)});
+ const cats=$$('.categoria');const names=['COMBOS','TRADICIONAIS','ARTESANAIS','PORÇÕES','PASTÉIS','AÇAÍS - MILKSHAKES - SOBREMESAS','BEBIDAS','ADICIONAIS'];const icons=['❤️','🍔','🔥','🍟','🥟','🍨','🥤','➕'];const box=$('#nd20QuickCats');cats.forEach((cat,i)=>{const b=document.createElement('button');b.type='button';b.className='nd20-qcat';b.textContent=(icons[i]||'•')+' '+(names[i]||('CATEGORIA '+(i+1)));b.onclick=()=>cat.scrollIntoView({behavior:'smooth',block:'start'});box.appendChild(b)});
  $('#nd20Finish').onclick=()=>{if(typeof window.abrirCarrinho==='function'){window.abrirCarrinho()}else{$('#modalCarrinho')?.classList.add('ativo')}};
 }
 function patchIntroButton(){
