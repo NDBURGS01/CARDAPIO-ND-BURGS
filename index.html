@@ -1,25 +1,54 @@
 <html lang="pt-BR">
 <head>
-<!-- ND BURGS: controle de versão para evitar conteúdo antigo em cache -->
-<meta name="nd-site-version" content="20260915-R46">
+<!-- ND BURGS: controle de versão + proteção contra layout antigo no primeiro paint -->
+<meta name="nd-site-version" content="20260916-R47-R1-R4">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20260915-R46";
+  const ND_SITE_VERSION = "20260916-R47";
   const KEY = "ndburgs_site_version";
+  const RESET_KEY = "ndburgs_cache_reset_20260916";
+  document.documentElement.classList.add("nd-booting");
+
+  async function resetOldCacheAndReload() {
+    try {
+      const tasks = [];
+      if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistrations) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        tasks.push(Promise.all(regs.map(r => r.unregister())));
+      }
+      if ("caches" in window && caches.keys) {
+        const keys = await caches.keys();
+        tasks.push(Promise.all(keys.map(k => caches.delete(k))));
+      }
+      await Promise.all(tasks);
+    } catch (e) {}
+    const u = new URL(window.location.href);
+    u.searchParams.set("_ndv", ND_SITE_VERSION);
+    u.searchParams.set("_ndfresh", Date.now().toString());
+    window.location.replace(u.toString());
+  }
+
   try {
     const old = localStorage.getItem(KEY);
-    if (old && old !== ND_SITE_VERSION) {
+    if (old !== ND_SITE_VERSION && !sessionStorage.getItem(RESET_KEY)) {
       localStorage.setItem(KEY, ND_SITE_VERSION);
-      // Recarrega uma única vez quando a versão do site mudar.
-      const u = new URL(window.location.href);
-      u.searchParams.set("_ndv", ND_SITE_VERSION);
-      window.location.replace(u.toString());
+      sessionStorage.setItem(RESET_KEY, "1");
+      resetOldCacheAndReload();
       return;
     }
     localStorage.setItem(KEY, ND_SITE_VERSION);
   } catch (e) {}
 })();
 </script>
+<style id="nd-boot-protection">
+  html.nd-booting{background:#070707!important}
+  html.nd-booting body > *:not(#ndR5Loader){visibility:hidden!important}
+  html.nd-booting #ndR5Loader{visibility:visible!important}
+  #ndR5Loader{position:fixed;inset:0;z-index:9999999}
+</style>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,12 +57,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ND BURGS">
-<link rel="manifest" href="./manifest.json?v=20260915-R46">
-<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20260915-R46">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20260915-R46">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20260915-R46">
-<link rel="icon" type="image/png" href="./favicon.png?v=20260915-R46">
-<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20260915-R46">
+<link rel="manifest" href="./manifest.json?v=20260916-R47">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20260916-R47">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20260916-R47">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20260916-R47">
+<link rel="icon" type="image/png" href="./favicon.png?v=20260916-R47">
+<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20260916-R47">
 
 <title>ND BURGS | Faça seu pedido</title>
 
@@ -805,6 +834,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </head>
 
 <body>
+
+<!-- ND BURGS: loader estático para impedir qualquer flash de layout/imagens antigas antes do carregamento -->
+<div id="ndR5Loader" class="nd-r5-loader" aria-live="polite" aria-label="Carregando ND BURGS">
+  <div class="nd-r5-loader-box">
+    <div class="nd-r5-loader-mark"></div>
+    <span>CARREGANDO ND BURGS</span>
+  </div>
+</div>
 
 <!-- ND R17: horário comercial real — terça a domingo, 18:00 às 00:30 -->
 
@@ -3273,6 +3310,7 @@ atualizarModalCarrinho();
 document.getElementById(
 "modalCarrinho"
 ).classList.add("ativo");
+document.dispatchEvent(new CustomEvent("nd:cart-open"));
 
 document.body.style.overflow=
 "hidden";
@@ -3291,6 +3329,7 @@ return;
 document.getElementById(
 "modalCarrinho"
 ).classList.remove("ativo");
+document.dispatchEvent(new CustomEvent("nd:cart-close"));
 
 document.body.style.overflow="";
 
@@ -5707,14 +5746,23 @@ button{font-family:inherit}
   }
 
   function buildLoader(){
-    if($('#ndR5Loader')) return;
-    const el=document.createElement('div');
-    el.id='ndR5Loader'; el.className='nd-r5-loader';
-    el.innerHTML='<div class="nd-r5-loader-box"><div class="nd-r5-loader-mark"></div><span>CARREGANDO ND BURGS</span></div>';
-    document.body.prepend(el);
-    const hide=()=>setTimeout(()=>el.classList.add('hide'),120);
-    if(document.readyState==='complete') hide(); else window.addEventListener('load',hide,{once:true});
-    setTimeout(hide,1800);
+    const el=$('#ndR5Loader');
+    if(!el) return;
+    // O loader agora existe desde o HTML inicial. Assim o layout antigo nunca
+    // aparece antes do JavaScript terminar de atualizar o catálogo.
+    const hide=()=>{
+      setTimeout(()=>{
+        el.classList.add('hide');
+        document.documentElement.classList.remove('nd-booting');
+      },900);
+    };
+    if(document.readyState==='complete') hide();
+    else window.addEventListener('load',hide,{once:true});
+    // Fallback para conexões muito lentas ou algum recurso externo travado.
+    setTimeout(()=>{
+      el.classList.add('hide');
+      document.documentElement.classList.remove('nd-booting');
+    },3500);
   }
 
 
@@ -11165,6 +11213,13 @@ function syncCartVisibility(){
     if(hide){bar.classList.remove('show');bar.style.setProperty('display','none','important');}
     else {bar.style.removeProperty('display');if(window.carrinho?.length)bar.classList.add('show');}
   }
+  // O botão de instalar não pode aparecer por cima do carrinho nem durante o checkout.
+  const install=document.getElementById('ndR45Install');
+  if(install){
+    install.classList.toggle('nd-install-hidden',hide);
+    if(hide) install.setAttribute('aria-hidden','true');
+    else install.removeAttribute('aria-hidden');
+  }
 }
 
 function rememberButton(btn){
@@ -11227,7 +11282,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* PWA — registra o service worker quando o arquivo estiver publicado. */
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('./sw.js?v=20260915-R46',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
+    try{
+      if(sessionStorage.getItem('ndburgs_cache_reset_20260916')==='1'){
+        sessionStorage.removeItem('ndburgs_cache_reset_20260916');
+        return;
+      }
+    }catch(_){}
+    navigator.serviceWorker.register('./sw.js?v=20260916-R47',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
   },{once:true});
 }
 
@@ -11248,6 +11309,7 @@ window.NDBURGSInstall=function(){
 <style id="nd-r45-install-ui">
 #ndR45Install{position:fixed;right:14px;bottom:92px;z-index:250001;display:none;align-items:center;gap:8px;border:1px solid rgba(245,196,0,.55);background:linear-gradient(135deg,#e50914,#ff4d20);color:#fff;border-radius:14px;padding:11px 14px;font-weight:900;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:pointer}
 #ndR45Install.show{display:flex}
+#ndR45Install.nd-install-hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
 @media(max-width:600px){#ndR45Install{right:10px;bottom:82px;padding:10px 12px;font-size:11px}}
 </style>
 <script id="nd-r45-install-ui-js">
@@ -11266,8 +11328,25 @@ function boot(){
  document.body.appendChild(b);
  const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
  if(!standalone)b.classList.add('show');
- document.addEventListener('nd:pwa-ready',()=>b.classList.add('show'));
+ document.addEventListener('nd:pwa-ready',()=>{
+   const cart=document.getElementById('modalCarrinho');
+   const checkout=document.getElementById('modalFinalizar');
+   if(!cart?.classList.contains('ativo')&&!checkout?.classList.contains('ativo'))b.classList.add('show');
+ });
  document.addEventListener('nd:pwa-installed',()=>b.classList.remove('show'));
+ const syncInstall=()=>{
+   const cart=document.getElementById('modalCarrinho');
+   const checkout=document.getElementById('modalFinalizar');
+   const gate=document.getElementById('ndFinalSendGate');
+   const hidden=!!(cart?.classList.contains('ativo')||checkout?.classList.contains('ativo')||gate?.classList.contains('show'));
+   b.classList.toggle('nd-install-hidden',hidden);
+   if(hidden)b.setAttribute('aria-hidden','true');else b.removeAttribute('aria-hidden');
+ };
+ document.addEventListener('nd:cart-open',syncInstall);
+ document.addEventListener('nd:cart-close',syncInstall);
+ document.addEventListener('nd:checkout-open',syncInstall);
+ document.addEventListener('nd:checkout-close',syncInstall);
+ setInterval(syncInstall,350);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
@@ -11280,89 +11359,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   /* Evita efeitos de composição caros durante carregamento inicial */
   html{overflow-x:hidden}
 </style>
-
-<!-- ND BURGS — INSTALAR APP: esconder ao abrir o carrinho/checkout -->
-<style id="nd-install-cart-fix">
-  /* O botão de instalar nunca aparece por cima do carrinho ou da finalização. */
-  body.nd-cart-open #ndR45Install,
-  body.nd-checkout-open #ndR45Install,
-  #modalCarrinho.ativo ~ #ndR45Install,
-  #modalFinalizar.ativo ~ #ndR45Install{
-    display:none !important;
-  }
-</style>
-<script id="nd-install-cart-fix-js">
-(function(){
-  'use strict';
-
-  function getInstallButton(){
-    return document.getElementById('ndR45Install');
-  }
-
-  function isOpen(id){
-    const el=document.getElementById(id);
-    return !!(el && el.classList.contains('ativo'));
-  }
-
-  function updateInstallVisibility(){
-    const b=getInstallButton();
-    if(!b)return;
-
-    const cartOpen=isOpen('modalCarrinho');
-    const checkoutOpen=isOpen('modalFinalizar');
-
-    if(cartOpen || checkoutOpen){
-      b.classList.remove('show');
-      b.style.setProperty('display','none','important');
-      document.body.classList.toggle('nd-cart-open',cartOpen);
-      document.body.classList.toggle('nd-checkout-open',checkoutOpen);
-      return;
-    }
-
-    document.body.classList.remove('nd-cart-open','nd-checkout-open');
-    b.style.removeProperty('display');
-
-    const standalone=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if(!standalone && (window.NDBURGSInstall || document.documentElement.classList.contains('nd-can-install'))){
-      b.classList.add('show');
-    }
-  }
-
-  function boot(){
-    const cart=document.getElementById('modalCarrinho');
-    const checkout=document.getElementById('modalFinalizar');
-
-    [cart,checkout].forEach(function(el){
-      if(!el)return;
-      new MutationObserver(updateInstallVisibility).observe(el,{attributes:true,attributeFilter:['class']});
-    });
-
-    document.addEventListener('nd:pwa-ready',updateInstallVisibility);
-    document.addEventListener('nd:pwa-installed',updateInstallVisibility);
-
-    /* Garante que clicar em VER CARRINHO esconda imediatamente o botão. */
-    document.addEventListener('click',function(e){
-      const alvo=e.target && e.target.closest ? e.target.closest('#carrinhoFlutuante, .btn-ver-carrinho, [onclick*="abrirCarrinho"]') : null;
-      if(alvo){
-        const b=getInstallButton();
-        if(b){
-          b.classList.remove('show');
-          b.style.setProperty('display','none','important');
-        }
-        setTimeout(updateInstallVisibility,0);
-      }
-    },true);
-
-    updateInstallVisibility();
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',boot,{once:true});
-  }else{
-    boot();
-  }
-})();
-</script>
-
 </body>
 </html>
