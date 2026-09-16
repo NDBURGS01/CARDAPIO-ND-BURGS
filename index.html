@@ -11280,5 +11280,89 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   /* Evita efeitos de composição caros durante carregamento inicial */
   html{overflow-x:hidden}
 </style>
+
+<!-- ND BURGS — INSTALAR APP: esconder ao abrir o carrinho/checkout -->
+<style id="nd-install-cart-fix">
+  /* O botão de instalar nunca aparece por cima do carrinho ou da finalização. */
+  body.nd-cart-open #ndR45Install,
+  body.nd-checkout-open #ndR45Install,
+  #modalCarrinho.ativo ~ #ndR45Install,
+  #modalFinalizar.ativo ~ #ndR45Install{
+    display:none !important;
+  }
+</style>
+<script id="nd-install-cart-fix-js">
+(function(){
+  'use strict';
+
+  function getInstallButton(){
+    return document.getElementById('ndR45Install');
+  }
+
+  function isOpen(id){
+    const el=document.getElementById(id);
+    return !!(el && el.classList.contains('ativo'));
+  }
+
+  function updateInstallVisibility(){
+    const b=getInstallButton();
+    if(!b)return;
+
+    const cartOpen=isOpen('modalCarrinho');
+    const checkoutOpen=isOpen('modalFinalizar');
+
+    if(cartOpen || checkoutOpen){
+      b.classList.remove('show');
+      b.style.setProperty('display','none','important');
+      document.body.classList.toggle('nd-cart-open',cartOpen);
+      document.body.classList.toggle('nd-checkout-open',checkoutOpen);
+      return;
+    }
+
+    document.body.classList.remove('nd-cart-open','nd-checkout-open');
+    b.style.removeProperty('display');
+
+    const standalone=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if(!standalone && (window.NDBURGSInstall || document.documentElement.classList.contains('nd-can-install'))){
+      b.classList.add('show');
+    }
+  }
+
+  function boot(){
+    const cart=document.getElementById('modalCarrinho');
+    const checkout=document.getElementById('modalFinalizar');
+
+    [cart,checkout].forEach(function(el){
+      if(!el)return;
+      new MutationObserver(updateInstallVisibility).observe(el,{attributes:true,attributeFilter:['class']});
+    });
+
+    document.addEventListener('nd:pwa-ready',updateInstallVisibility);
+    document.addEventListener('nd:pwa-installed',updateInstallVisibility);
+
+    /* Garante que clicar em VER CARRINHO esconda imediatamente o botão. */
+    document.addEventListener('click',function(e){
+      const alvo=e.target && e.target.closest ? e.target.closest('#carrinhoFlutuante, .btn-ver-carrinho, [onclick*="abrirCarrinho"]') : null;
+      if(alvo){
+        const b=getInstallButton();
+        if(b){
+          b.classList.remove('show');
+          b.style.setProperty('display','none','important');
+        }
+        setTimeout(updateInstallVisibility,0);
+      }
+    },true);
+
+    updateInstallVisibility();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',boot,{once:true});
+  }else{
+    boot();
+  }
+})();
+</script>
+
 </body>
 </html>
