@@ -5204,7 +5204,13 @@ function buildCheckout(){
       <input id="ruaBuscaModal" type="search" autocomplete="off" placeholder="🔎 Digite o nome da rua">
       <select id="ruaModal" onchange="calcularTaxaModal()"><option value="">Selecione sua rua</option></select>
       <label>Número</label><input id="numeroModal" type="text" placeholder="Número">
-      <label>Complemento <small>(opcional)</small></label><input id="complementoModal" type="text" placeholder="Casa, apto, bloco...">
+      <div class="nd-complement-highlight">
+        <span class="nd-complement-title">📍 COMPLEMENTO DO ENDEREÇO</span>
+        <span class="nd-complement-help">Ajude o entregador a encontrar você. Coloque apartamento, bloco, casa dos fundos, condomínio ou uma referência do local.</span>
+        <span class="nd-complement-example">Ex.: Apto 12 • Bloco B • Casa dos fundos • Portão preto</span>
+      </div>
+      <input id="complementoModal" class="nd-complement-input" type="text" placeholder="Ex.: Apto 12, Bloco B, casa dos fundos..." autocomplete="address-line2">
+      <div class="nd-complement-inline"><strong>Não tem complemento?</strong> Pode deixar este campo em branco.</div>
       <div id="avisoTaxaModal" class="aviso-taxa" style="display:none"></div>
     </div>
     <div id="ndRetiradaInfo" style="display:none" class="nd-v4-delivery-estimate">🏪 <b>Retirada no local</b><br>Sem taxa de entrega.</div>
@@ -6317,6 +6323,84 @@ header .logo{display:none!important}
 .nd17-suggest{position:relative}.nd17-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100002;max-height:210px;overflow:auto;background:#111;border:1px solid #303030;border-radius:11px;display:none}.nd17-list.show{display:block}.nd17-option{padding:12px 13px;color:#eee;border-bottom:1px solid #222;cursor:pointer;font-size:13px}.nd17-option:last-child{border-bottom:0}.nd17-option:hover{background:#1677ff;color:#fff}
 .nd17-gate-main{width:100%;border:0;border-radius:12px;background:var(--nd17-blue);color:#fff;padding:14px;font-weight:900;font-size:14px;cursor:pointer}.nd17-gate-main:hover{background:var(--nd17-blue2)}
 .nd17-gate-retirada{width:100%;margin-top:8px;border:1px solid #333;border-radius:12px;background:#111;color:#ddd;padding:12px;font-weight:800;cursor:pointer}
+
+/* ============================================================
+   ND BURGS — COMPLEMENTO DO ENDEREÇO EM DESTAQUE
+   Ajuda o cliente a entender exatamente para que serve o campo.
+   ============================================================ */
+.nd-complement-highlight{
+  margin:12px 0 4px;
+  padding:12px 13px;
+  border:1px solid rgba(229,9,20,.55);
+  border-radius:13px;
+  background:linear-gradient(135deg,rgba(229,9,20,.12),rgba(20,20,20,.96));
+  box-shadow:0 7px 22px rgba(0,0,0,.22);
+}
+.nd-complement-highlight .nd-complement-title{
+  display:block;
+  color:#fff;
+  font-size:13px;
+  font-weight:1000;
+  letter-spacing:.15px;
+  margin-bottom:4px;
+}
+.nd-complement-highlight .nd-complement-help{
+  display:block;
+  color:#d7d7d7;
+  font-size:11px;
+  line-height:1.45;
+}
+.nd-complement-highlight .nd-complement-example{
+  display:block;
+  margin-top:5px;
+  color:#ffb3b6;
+  font-size:10px;
+  font-weight:800;
+}
+.nd-complement-input{
+  border:2px solid #e50914!important;
+  box-shadow:0 0 0 3px rgba(229,9,20,.08)!important;
+}
+.nd-complement-input:focus{
+  border-color:#ff3038!important;
+  box-shadow:0 0 0 4px rgba(229,9,20,.15)!important;
+}
+.nd-complement-inline{
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:#171717;
+  border:1px solid #303030;
+  color:#ddd;
+  font-size:10px;
+  line-height:1.4;
+}
+.nd-complement-inline strong{color:#fff}
+#ndV4ComplementHelp{
+  margin:8px 0 10px;
+  padding:10px 12px;
+  border-radius:11px;
+  background:rgba(229,9,20,.08);
+  border:1px solid rgba(229,9,20,.42);
+  color:#ddd;
+  font-size:11px;
+  line-height:1.45;
+}
+#ndV4SingleAddressSummary .nd-complement-summary{
+  display:inline-block;
+  margin-top:5px;
+  padding:5px 8px;
+  border-radius:7px;
+  background:#1b1b1b;
+  border:1px solid #333;
+  color:#fff;
+  font-size:10px;
+}
+@media(max-width:600px){
+  .nd-complement-highlight{padding:11px}
+  .nd-complement-highlight .nd-complement-title{font-size:12px}
+}
+
 /* Resumo do carrinho: taxa e total visualmente inequívocos */
 #nd17CartAddress{margin:10px 0;padding:10px 12px;border:1px solid #242424;border-radius:10px;background:#080808;font-size:11px;color:#aaa}
 #nd17CartAddress b{color:#fff}#nd17CartAddress strong{color:#ffd21a}
@@ -6349,7 +6433,7 @@ header .logo{display:none!important}
  function streets(){try{return typeof taxas!=='undefined'?Object.keys(taxas).filter(x=>!['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(x)):Object.keys(window.taxas||{}).filter(x=>!['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(x))}catch(e){return []}}
  try{if(typeof taxas!=='undefined')window.taxas=taxas}catch(e){}
  function saveAddr(street,number,type){localStorage.setItem('nd17_tipo',type);localStorage.setItem('nd17_rua',street||'');localStorage.setItem('nd17_numero',number||'');}
- function addr(){return {type:localStorage.getItem('nd17_tipo')||'ENTREGA',street:localStorage.getItem('nd17_rua')||'',number:localStorage.getItem('nd17_numero')||''}}
+ function addr(){return {type:localStorage.getItem('nd17_tipo')||'ENTREGA',street:localStorage.getItem('nd17_rua')||'',number:localStorage.getItem('nd17_numero')||'',complemento:localStorage.getItem('nd17_complemento')||''}}
  function fee(){const a=addr();if(a.type!=='ENTREGA'||!a.street)return 0;try{return Number((window.taxas||{})[a.street]||0)}catch(e){return 0}}
  function ensureMainForms(){const a=addr();
    const type=$('#tipoPedido'); if(type){type.value=a.type==='RETIRADA'?'RETIRADA':'ENTREGA';}
@@ -6372,7 +6456,7 @@ header .logo{display:none!important}
  function ensureInline(input){if(!input)return null;let list=input.parentElement.querySelector('.nd17-inline-list');if(!list){const wrap=document.createElement('div');wrap.className='nd17-inline-suggest';input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);list=document.createElement('div');list.className='nd17-inline-list';wrap.appendChild(list)}return list}
  function saveGate(type){const street=$('#nd17GateStreet')?.value.trim().toUpperCase()||'', num=$('#nd17GateNumber')?.value.trim()||'';if(type==='ENTREGA'){const key=streets().find(s=>norm(s)===norm(street));if(!key)return alert('Selecione uma rua da lista de sugestões.');if(!num)return alert('Digite o número do endereço.');saveAddr(key,num,'ENTREGA')}else saveAddr('','', 'RETIRADA');ensureMainForms();cartTotalSync();hideGate();updateBar();}
  function ensureBrand(){if($('.nd17-brand'))return;const logo=$('header .logo'),search=$('.modern-search');if(!logo||!search)return;const b=document.createElement('div');b.className='nd17-brand';const im=logo.cloneNode(true);im.removeAttribute('class');im.alt='ND BURGS';b.appendChild(im);search.parentNode.insertBefore(b,search)}
- function updateBar(){ensureBrand();let b=$('#nd17AddressBar');if(!b){const h=$('.horarios');if(!h)return;b=document.createElement('div');b.id='nd17AddressBar';h.parentNode.insertBefore(b,h.nextSibling)}const a=addr(),f=fee();b.innerHTML=a.type==='RETIRADA'?'<span><strong>Retirada no local</strong></span><button class="nd17-address-edit" type="button">ALTERAR</button>':'<span><strong>'+a.street+(a.number?', Nº '+a.number:'')+'</strong><br><small>Taxa de entrega: '+money(f)+'</small></span><button class="nd17-address-edit" type="button">ALTERAR</button>';b.querySelector('button').onclick=()=>showGate()}
+ function updateBar(){ensureBrand();let b=$('#nd17AddressBar');if(!b){const h=$('.horarios');if(!h)return;b=document.createElement('div');b.id='nd17AddressBar';h.parentNode.insertBefore(b,h.nextSibling)}const a=addr(),f=fee();b.innerHTML=a.type==='RETIRADA'?'<span><strong>Retirada no local</strong></span><button class="nd17-address-edit" type="button">ALTERAR</button>':'<span><strong>'+a.street+(a.number?', Nº '+a.number:'')+'</strong>'+(a.complemento?'<br><small>📍 '+a.complemento+'</small>':'')+'<br><small>Taxa de entrega: '+money(f)+'</small></span><button class="nd17-address-edit" type="button">ALTERAR</button>';b.querySelector('button').onclick=()=>showGate()}
  function openGateIfNeeded(){if(!localStorage.getItem('nd17_tipo'))showGate();else{ensureMainForms();updateBar();cartTotalSync()}}
  function patchOpenCart(){if(window.__nd17Cart)return;const old=window.abrirCarrinho;if(typeof old!=='function')return;window.abrirCarrinho=function(){ensureMainForms();const r=old.apply(this,arguments);setTimeout(cartTotalSync,30);return r};window.__nd17Cart=true}
  function patchBuildCheckout(){if(typeof window.buildCheckout==='function'&&!window.buildCheckout.__nd17){const old=window.buildCheckout;window.buildCheckout=function(){const r=old.apply(this,arguments);setTimeout(()=>{ensureMainForms();cartTotalSync();setupAutocomplete();bindFinishButton()},20);return r};window.buildCheckout.__nd17=true}}
@@ -9060,6 +9144,7 @@ if(document.readyState==='loading'){
 .nd26-mode-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .nd26-mode{border:1px solid rgba(255,255,255,.1);background:#0d1018;color:#d8deea;border-radius:12px;padding:10px 13px;min-height:44px;font-weight:900;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:.18s ease}
 .nd26-mode.active{border-color:#4b93ff;background:linear-gradient(135deg,#163a79,#101b31);color:#fff;box-shadow:0 0 18px rgba(58,132,255,.2),inset 0 1px 0 rgba(255,255,255,.12)}
+.nd26-complement-wrap{grid-column:1 / -1}
 .nd26-fields{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:8px;margin-top:10px}
 .nd26-field-wrap{position:relative}
 .nd26-input{width:100%;margin:0!important;min-height:46px;padding:12px 13px!important;background:#070a10!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:12px!important;color:#fff!important;outline:none!important;font-size:14px!important}
@@ -9151,20 +9236,21 @@ const money=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',');
 
 function taxes(){try{return typeof window.taxas!=='undefined'?window.taxas:(typeof taxas!=='undefined'?taxas:{})}catch(e){return window.taxas||{}}}
 function streets(){return Object.keys(taxes()).filter(k=>!['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(k));}
-function getAddr(){return {type:localStorage.getItem('nd26_tipo')||localStorage.getItem('nd17_tipo')||'ENTREGA',street:localStorage.getItem('nd26_rua')||localStorage.getItem('nd17_rua')||'',number:localStorage.getItem('nd26_numero')||localStorage.getItem('nd17_numero')||''}}
-function saveAddr(type,street,number){localStorage.setItem('nd26_tipo',type);localStorage.setItem('nd26_rua',street||'');localStorage.setItem('nd26_numero',number||'');localStorage.setItem('nd17_tipo',type);localStorage.setItem('nd17_rua',street||'');localStorage.setItem('nd17_numero',number||'');}
+function getAddr(){return {type:localStorage.getItem('nd26_tipo')||localStorage.getItem('nd17_tipo')||'ENTREGA',street:localStorage.getItem('nd26_rua')||localStorage.getItem('nd17_rua')||'',number:localStorage.getItem('nd26_numero')||localStorage.getItem('nd17_numero')||'',complemento:localStorage.getItem('nd26_complemento')||localStorage.getItem('nd17_complemento')||''}}
+function saveAddr(type,street,number,complemento){localStorage.setItem('nd26_tipo',type);localStorage.setItem('nd26_rua',street||'');localStorage.setItem('nd26_numero',number||'');localStorage.setItem('nd26_complemento',complemento||'');localStorage.setItem('nd17_tipo',type);localStorage.setItem('nd17_rua',street||'');localStorage.setItem('nd17_numero',number||'');localStorage.setItem('nd17_complemento',complemento||'');}
 function syncCheckoutAddr(){
- const a=getAddr(),tipo=$('#tipoPedidoModal'),rua=$('#ruaModal'),num=$('#numeroModal');
+ const a=getAddr(),tipo=$('#tipoPedidoModal'),rua=$('#ruaModal'),num=$('#numeroModal'),comp=$('#complementoModal');
  if(tipo)tipo.value=a.type==='RETIRADA'?'RETIRADA':'ENTREGA';
  if(rua)rua.value=a.street||'';
  if(num)num.value=a.number||'';
+ if(comp)comp.value=a.complemento||'';
  const btns=$$('.nd-v4-pay[data-type]');btns.forEach(b=>b.classList.toggle('active',b.dataset.type===a.type));
 }
 function addressSummary(){
  const box=$('#ndV4SingleAddressSummary'); if(!box)return;
  const a=getAddr();
  if(a.type==='RETIRADA')box.innerHTML='<strong>🏪 RETIRADA NA LOJA</strong><br>Seu pedido será preparado para retirada no local.<br><button type="button" id="nd26EditTop">ALTERAR NO TOPO</button>';
- else box.innerHTML='<strong>🛵 DELIVERY</strong><br>'+((a.street||'Endereço não selecionado'))+(a.number?', Nº '+a.number:'')+'<br><small>Taxa: '+money(taxes()[a.street]||0)+'</small><br><button type="button" id="nd26EditTop">ALTERAR NO TOPO</button>';
+ else box.innerHTML='<strong>🛵 DELIVERY</strong><br>'+((a.street||'Endereço não selecionado'))+(a.number?', Nº '+a.number:'')+(a.complemento?'<br><span class="nd-complement-summary">📍 Complemento: '+esc(a.complemento)+'</span>':'')+'<br><small>Taxa: '+money(taxes()[a.street]||0)+'</small><br><button type="button" id="nd26EditTop">ALTERAR NO TOPO</button>';
  $('#nd26EditTop')?.addEventListener('click',()=>$('#ndTopStreet')?.focus());
 }
 function renderStreetList(input,list){
@@ -9197,6 +9283,11 @@ function buildTopAddress(){
   <div class="nd26-fields" id="nd26DeliveryFields">
    <div class="nd26-field-wrap"><input id="ndTopStreet" class="nd26-input" type="search" autocomplete="off" placeholder="🔎 Digite sua rua" aria-label="Rua"><div id="ndTopStreetList" class="nd26-list"></div></div>
    <input id="ndTopNumber" class="nd26-input" type="text" inputmode="numeric" placeholder="Número" aria-label="Número">
+   <div class="nd26-complement-wrap">
+    <div class="nd-complement-highlight"><span class="nd-complement-title">📍 COMPLEMENTO DO ENDEREÇO</span><span class="nd-complement-help">Ajude o entregador a encontrar você: apartamento, bloco, casa dos fundos, condomínio ou referência.</span><span class="nd-complement-example">Ex.: Apto 12, Bloco B, portão preto</span></div>
+    <input id="ndTopComplement" class="nd26-input nd-complement-input" type="text" autocomplete="address-line2" placeholder="Ex.: Apto 12, Bloco B, casa dos fundos..." aria-label="Complemento do endereço">
+    <div class="nd-complement-inline"><strong>Não tem complemento?</strong> Pode deixar em branco.</div>
+   </div>
    <button type="button" class="nd26-save" id="nd26SaveAddress">SALVAR ENDEREÇO</button>
   </div>
   <div class="nd26-pickup-note" id="nd26PickupNote">🏪 <strong>Retirada selecionada.</strong> Sem taxa de entrega. Seu endereço não será solicitado.</div>
@@ -9206,15 +9297,15 @@ function buildTopAddress(){
  function setMode(type){
    const delivery=type==='ENTREGA';del.classList.toggle('active',delivery);pick.classList.toggle('active',!delivery);fields.style.display=delivery?'grid':'none';note.classList.toggle('show',!delivery);
  }
- function updateStatus(){const a=getAddr();$('#nd26CurrentStatus').innerHTML=a.type==='RETIRADA'?'<strong>🏪 Retirada na loja</strong>':'<strong>'+ (a.street||'Nenhum endereço selecionado') + (a.number?', Nº '+a.number:'') + '</strong><br><span>Taxa: '+money(taxes()[a.street]||0)+'</span>'}
+ function updateStatus(){const a=getAddr();$('#nd26CurrentStatus').innerHTML=a.type==='RETIRADA'?'<strong>🏪 Retirada na loja</strong>':'<strong>'+ (a.street||'Nenhum endereço selecionado') + (a.number?', Nº '+a.number:'') + '</strong>'+(a.complemento?'<br><span>📍 '+esc(a.complemento)+'</span>':'')+'<br><span>Taxa: '+money(taxes()[a.street]||0)+'</span>'}
  del.onclick=()=>{setMode('ENTREGA');street.focus()};
  pick.onclick=()=>{saveAddr('RETIRADA','','');syncCheckoutAddr();setMode('RETIRADA');updateStatus();addressSummary();};
  street.addEventListener('input',()=>{street.dataset.valid='';renderStreetList(street,list)});
  street.addEventListener('focus',()=>renderStreetList(street,list));
  document.addEventListener('click',e=>{if(!d.contains(e.target))list.classList.remove('show')});
- $('#nd26SaveAddress').onclick=()=>{const s=streets().find(x=>norm(x)===norm(street.value));if(!s)return alert('Selecione uma rua da lista.');if(!number.value.trim())return alert('Digite o número do endereço.');saveAddr('ENTREGA',s,number.value.trim());syncCheckoutAddr();updateStatus();addressSummary();street.value=s;};
+ $('#nd26SaveAddress').onclick=()=>{const s=streets().find(x=>norm(x)===norm(street.value));if(!s)return alert('Selecione uma rua da lista.');if(!number.value.trim())return alert('Digite o número do endereço.');const comp=($('#ndTopComplement')?.value||'').trim();saveAddr('ENTREGA',s,number.value.trim(),comp);syncCheckoutAddr();updateStatus();addressSummary();street.value=s;};
  $('#nd26ClearAddress').onclick=()=>street.focus();
- const a=getAddr();street.value=a.street||'';number.value=a.number||'';setMode(a.type==='RETIRADA'?'RETIRADA':'ENTREGA');updateStatus();
+ const a=getAddr();street.value=a.street||'';number.value=a.number||'';if($('#ndTopComplement'))$('#ndTopComplement').value=a.complemento||'';setMode(a.type==='RETIRADA'?'RETIRADA':'ENTREGA');updateStatus();
 }
 
 function hideLegacyAddressGate(){
@@ -9672,6 +9763,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .nd-first-mode.active{border-color:#e50914;background:linear-gradient(135deg,#2a0d0f,#151012);color:#fff;box-shadow:0 8px 25px rgba(229,9,20,.12)}
 .nd-first-fields{margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:9px}
 .nd-first-fields input{width:100%;min-height:50px;padding:13px 14px;border-radius:12px;border:1px solid #34343d;background:#0c0c10;color:#fff;font-size:15px;outline:none}
+.nd-first-complement-wrap{grid-column:1 / -1}
+.nd-first-complement-wrap .nd-complement-highlight{margin-top:0}
+.nd-first-complement-wrap .nd-complement-inline{margin-bottom:0}
+
 .nd-first-fields input:focus{border-color:#e50914;box-shadow:0 0 0 3px rgba(229,9,20,.1)}
 .nd-first-save{width:100%;min-height:52px;margin-top:10px;border:0;border-radius:13px;background:linear-gradient(135deg,#e50914,#ff3038);color:#fff;font-size:15px;font-weight:1000;cursor:pointer;box-shadow:0 10px 28px rgba(229,9,20,.2)}
 .nd-first-pickup{display:none;margin-top:12px;padding:14px;border:1px solid #303037;border-radius:13px;background:#101014;color:#ccc;font-size:12px;line-height:1.5}
@@ -9720,7 +9815,7 @@ function saveDelivery(){
 function savePickup(){
  var topPick=$('#nd26PickupMode');
  if(topPick){topPick.click();closeGate();return}
- try{localStorage.setItem('nd26_tipo','RETIRADA');localStorage.setItem('nd26_rua','');localStorage.setItem('nd26_numero','');localStorage.setItem('nd17_tipo','RETIRADA');localStorage.setItem('nd17_rua','');localStorage.setItem('nd17_numero','')}catch(e){}
+ try{localStorage.setItem('nd26_tipo','RETIRADA');localStorage.setItem('nd26_rua','');localStorage.setItem('nd26_numero','');localStorage.setItem('nd26_complemento','');localStorage.setItem('nd17_tipo','RETIRADA');localStorage.setItem('nd17_rua','');localStorage.setItem('nd17_numero','');localStorage.setItem('nd17_complemento','')}catch(e){}
  closeGate();
 }
 function build(){
@@ -9730,9 +9825,9 @@ function build(){
  g.innerHTML='<div class="nd-first-gate-box" role="dialog" aria-modal="true" aria-labelledby="ndFirstTitle">'+
  '<div class="nd-first-kicker">⚡ ESSA PARTE É MUITO IMPORTANTE PARA SEU PEDIDO</div>'+ 
  '<div class="nd-first-title" id="ndFirstTitle">Coloque seu <strong>ENDEREÇO</strong> ou selecione <strong>RETIRADA NA LOJA</strong></div>'+ 
- '<div class="nd-first-sub">Escolha uma única vez aqui no topo. A taxa de delivery será calculada automaticamente.</div>'+ 
+ '<div class="nd-first-sub">Escolha uma única vez aqui no topo. A taxa de delivery será calculada automaticamente. <strong>Se mora em apartamento, condomínio ou casa dos fundos, informe o complemento.</strong></div>'+ 
  '<div class="nd-first-modes"><button type="button" class="nd-first-mode active" id="ndFirstDelivery">🛵 DELIVERY</button><button type="button" class="nd-first-mode" id="ndFirstPickup">🏪 RETIRADA NA LOJA</button></div>'+ 
- '<div class="nd-first-fields" id="ndFirstFields"><input id="ndFirstStreet" type="text" autocomplete="off" placeholder="🔎 Digite sua rua" aria-label="Rua"><input id="ndFirstNumber" type="text" inputmode="numeric" placeholder="Número" aria-label="Número"></div>'+ 
+ '<div class="nd-first-fields" id="ndFirstFields"><input id="ndFirstStreet" type="text" autocomplete="off" placeholder="🔎 Digite sua rua" aria-label="Rua"><input id="ndFirstNumber" type="text" inputmode="numeric" placeholder="Número" aria-label="Número"><div class="nd-first-complement-wrap"><div class="nd-complement-highlight"><span class="nd-complement-title">📍 COMPLEMENTO DO ENDEREÇO</span><span class="nd-complement-help">Tem apto, bloco, casa dos fundos, condomínio ou alguma referência? Coloque aqui para o entregador encontrar você.</span><span class="nd-complement-example">Ex.: Apto 12, Bloco B, portão preto</span></div><input id="ndFirstComplement" class="nd-complement-input" type="text" autocomplete="address-line2" placeholder="Ex.: Apto 12, Bloco B, casa dos fundos..." aria-label="Complemento do endereço"><div class="nd-complement-inline"><strong>Não tem?</strong> Pode deixar em branco.</div></div></div>'+ 
  '<button type="button" class="nd-first-save" id="ndFirstSave">SALVAR ENDEREÇO</button>'+ 
  '<div class="nd-first-pickup" id="ndFirstPickupNote">🏪 <strong>Retirada na loja</strong><br>Sem taxa de entrega. Seu endereço não será solicitado.</div>'+ 
  '<div class="nd-first-status" id="ndFirstStatus"></div></div>';
@@ -9742,10 +9837,13 @@ function build(){
  $('#ndFirstSave').onclick=saveDelivery;
  $('#ndFirstStreet').addEventListener('keydown',function(e){if(e.key==='Enter')saveDelivery()});
  $('#ndFirstNumber').addEventListener('keydown',function(e){if(e.key==='Enter')saveDelivery()});
+ $('#ndFirstComplement').addEventListener('keydown',function(e){if(e.key==='Enter')saveDelivery()});
  if(done()||hasSaved())return;
  setMode('ENTREGA');
  g.classList.add('show');
  document.body.style.overflow='hidden';
+ var savedComp=localStorage.getItem('nd26_complemento')||localStorage.getItem('nd17_complemento')||'';
+ var firstComp=$('#ndFirstComplement');if(firstComp)firstComp.value=savedComp;
  setTimeout(function(){var x=$('#ndFirstStreet');if(x)x.focus()},100);
 }
 function init(){setTimeout(build,120)}
@@ -10719,7 +10817,7 @@ function patchFirstSave(){
    e.preventDefault();
    e.stopImmediatePropagation();
 
-   var input=$('#ndFirstStreet'),num=$('#ndFirstNumber'),status=$('#ndFirstStatus');
+   var input=$('#ndFirstStreet'),num=$('#ndFirstNumber'),comp=$('#ndFirstComplement'),status=$('#ndFirstStatus');
    if(!input||!num)return;
 
    var s=validateOrMessage(input);
@@ -10737,11 +10835,13 @@ function patchFirstSave(){
      localStorage.setItem('nd26_tipo','ENTREGA');
      localStorage.setItem('nd26_rua',s);
      localStorage.setItem('nd26_numero',n);
+     localStorage.setItem('nd26_complemento',(comp&&comp.value||'').trim());
 
      // Compatibilidade com as versões anteriores do site.
      localStorage.setItem('nd17_tipo','ENTREGA');
      localStorage.setItem('nd17_rua',s);
      localStorage.setItem('nd17_numero',n);
+     localStorage.setItem('nd17_complemento',(comp&&comp.value||'').trim());
 
      // Atualiza o endereço exibido no topo.
      var top=$('#ndTopStreet'),topNum=$('#ndTopNumber');
