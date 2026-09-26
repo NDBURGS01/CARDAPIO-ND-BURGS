@@ -11459,5 +11459,251 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   /* Evita efeitos de composição caros durante carregamento inicial */
   html{overflow-x:hidden}
 </style>
+
+<style id="nd-endereco-super-explicito">
+/* =========================================================
+   ND BURGS — ENDEREÇO SEM ERRO
+   Objetivo: impedir que o cliente coloque rua + número no
+   mesmo campo e deixar a seleção da sugestão impossível de ignorar.
+   ========================================================= */
+#ndTopAddress{
+  position:relative!important;
+}
+#ndTopAddress .nd26-title{
+  line-height:1.2!important;
+}
+.nd-address-howto{
+  margin:12px 0 13px!important;
+  padding:13px 14px!important;
+  border:2px solid #e50914!important;
+  border-radius:14px!important;
+  background:linear-gradient(135deg,#2b0d10,#151515)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.30)!important;
+}
+.nd-address-howto .nd-ah-title{
+  display:block!important;
+  color:#fff!important;
+  font-size:15px!important;
+  font-weight:1000!important;
+  margin-bottom:8px!important;
+}
+.nd-address-howto .nd-ah-step{
+  display:flex!important;
+  gap:8px!important;
+  align-items:flex-start!important;
+  margin:5px 0!important;
+  color:#ddd!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+.nd-address-howto .nd-ah-num{
+  flex:none!important;
+  display:grid!important;
+  place-items:center!important;
+  width:22px!important;
+  height:22px!important;
+  border-radius:50%!important;
+  background:#e50914!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+}
+.nd-address-howto .nd-ah-warning{
+  display:block!important;
+  margin-top:9px!important;
+  padding:8px 9px!important;
+  border-radius:9px!important;
+  background:#090909!important;
+  color:#ffd166!important;
+  font-size:11px!important;
+  font-weight:900!important;
+}
+#ndTopStreet{
+  border:2px solid #e50914!important;
+  box-shadow:0 0 0 3px rgba(229,9,20,.07)!important;
+}
+#ndTopStreet.nd-address-selected{
+  border-color:#25d366!important;
+  box-shadow:0 0 0 3px rgba(37,211,102,.09)!important;
+}
+.nd-address-selected-badge{
+  display:none;
+  margin-top:6px;
+  padding:7px 9px;
+  border-radius:9px;
+  background:rgba(37,211,102,.10);
+  border:1px solid rgba(37,211,102,.35);
+  color:#7dffac;
+  font-size:11px;
+  font-weight:900;
+}
+.nd-address-selected-badge.show{display:block!important}
+.nd-address-error{
+  display:none;
+  margin-top:7px;
+  padding:9px 10px;
+  border-radius:9px;
+  background:rgba(229,9,20,.10);
+  border:1px solid rgba(229,9,20,.45);
+  color:#ffb3b6;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.4;
+}
+.nd-address-error.show{display:block!important}
+#nd26SaveAddress.nd-save-disabled{
+  opacity:.55!important;
+  filter:grayscale(.25)!important;
+}
+@media(max-width:600px){
+  .nd-address-howto{padding:12px!important}
+  .nd-address-howto .nd-ah-title{font-size:14px!important}
+  .nd-address-howto .nd-ah-step{font-size:11px!important}
+}
+</style>
+
+<script id="nd-endereco-super-explicito-js">
+(function(){
+'use strict';
+
+function initEnderecoSemErro(){
+  const box=document.getElementById('ndTopAddress');
+  if(!box || box.dataset.ndEnderecoFix==='1') return;
+  box.dataset.ndEnderecoFix='1';
+
+  const title=box.querySelector('.nd26-title');
+  const sub=box.querySelector('.nd26-sub');
+  const street=document.getElementById('ndTopStreet');
+  const list=document.getElementById('ndTopStreetList');
+  const number=document.getElementById('ndTopNumber');
+  const save=document.getElementById('nd26SaveAddress');
+  if(!street||!list||!number||!save) return;
+
+  /* Troca a orientação genérica por uma instrução impossível de confundir. */
+  if(title) title.innerHTML='📍 PRIMEIRO, ESCOLHA SUA <strong>RUA</strong>';
+  if(sub) sub.textContent='Não digite o endereço inteiro aqui. Primeiro escolha sua rua na lista que aparecerá abaixo.';
+
+  if(!box.querySelector('.nd-address-howto')){
+    const guide=document.createElement('div');
+    guide.className='nd-address-howto';
+    guide.innerHTML=
+      '<span class="nd-ah-title">⚠️ FAÇA ASSIM PARA O PEDIDO DAR CERTO</span>'+
+      '<div class="nd-ah-step"><span class="nd-ah-num">1</span><span><b>Digite somente o nome da rua.</b><br>Ex.: “Bananeiras”</span></div>'+
+      '<div class="nd-ah-step"><span class="nd-ah-num">2</span><span><b>Toque na rua que aparecer na lista.</b><br>Ela ficará marcada como selecionada.</span></div>'+
+      '<div class="nd-ah-step"><span class="nd-ah-num">3</span><span><b>Depois coloque o número</b> no campo “Número”.</span></div>'+
+      '<span class="nd-ah-warning">🚫 NÃO coloque rua + número juntos no campo da rua.</span>';
+    const mode=box.querySelector('.nd26-mode-row');
+    if(mode) mode.after(guide); else if(sub) sub.after(guide);
+  }
+
+  let badge=box.querySelector('.nd-address-selected-badge');
+  if(!badge){
+    badge=document.createElement('div');
+    badge.className='nd-address-selected-badge';
+    badge.textContent='✓ RUA SELECIONADA — AGORA COLOQUE O NÚMERO ABAIXO';
+    street.parentNode.appendChild(badge);
+  }
+
+  let error=box.querySelector('.nd-address-error');
+  if(!error){
+    error=document.createElement('div');
+    error.className='nd-address-error';
+    street.parentNode.appendChild(error);
+  }
+
+  function hasValidSelection(){
+    const taxesObj=(typeof window.taxas!=='undefined')?window.taxas:{};
+    const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').toUpperCase().trim();
+    const found=Object.keys(taxesObj).find(k=>!['BALCAO','RETIRADA','IFOOD','99FOOD'].includes(k)&&norm(k)===norm(street.value));
+    return !!found && street.dataset.valid==='1';
+  }
+
+  function containsNumber(v){
+    return /\d/.test(String(v||''));
+  }
+
+  function updateVisual(){
+    const valid=hasValidSelection();
+    street.classList.toggle('nd-address-selected',valid);
+    badge.classList.toggle('show',valid);
+
+    if(valid){
+      error.classList.remove('show');
+      error.textContent='';
+    }
+
+    save.classList.toggle('nd-save-disabled',!valid);
+  }
+
+  /* Digitar qualquer coisa invalida a seleção anterior. */
+  street.addEventListener('input',function(){
+    street.dataset.valid='';
+    updateVisual();
+
+    if(containsNumber(street.value)){
+      error.innerHTML='<b>⚠️ ATENÇÃO:</b> coloque somente o nome da rua aqui.<br>O número deve ser colocado no campo <b>Número</b>.';
+      error.classList.add('show');
+    }else{
+      error.classList.remove('show');
+    }
+  },true);
+
+  /* Só considera válido quando o cliente realmente toca/clica numa sugestão. */
+  list.addEventListener('click',function(e){
+    const option=e.target.closest('.nd26-option');
+    if(!option) return;
+    setTimeout(function(){
+      street.dataset.valid='1';
+      updateVisual();
+      number.focus();
+    },20);
+  },true);
+
+  save.addEventListener('click',function(e){
+    if(!hasValidSelection()){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      if(containsNumber(street.value)){
+        error.innerHTML='<b>🚫 NÃO PODE CONTINUAR:</b> você colocou rua + número no mesmo campo.<br><br>Apague o número, digite somente o nome da rua e <b>TOQUE NA SUGESTÃO</b> que aparecer.';
+      }else{
+        error.innerHTML='<b>🚫 SELECIONE SUA RUA:</b> digite o nome da rua e <b>toque em uma opção da lista</b> antes de salvar.';
+      }
+      error.classList.add('show');
+      street.classList.remove('nd-address-selected');
+      badge.classList.remove('show');
+      street.focus();
+      return false;
+    }
+
+    if(!number.value.trim()){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      error.textContent='';
+      number.style.border='2px solid #e50914';
+      number.focus();
+      alert('Agora coloque o número da residência no campo NÚMERO.');
+      return false;
+    }
+  },true);
+
+  updateVisual();
+}
+
+/* A caixa é criada pelo próprio site; espera por ela sem observar o body o tempo todo. */
+function boot(){
+  initEnderecoSemErro();
+  let tries=0;
+  const timer=setInterval(()=>{
+    initEnderecoSemErro();
+    tries++;
+    if(document.getElementById('ndTopAddress') || tries>30) clearInterval(timer);
+  },250);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+else boot();
+})();
+</script>
+
 </body>
 </html>
