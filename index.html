@@ -6461,26 +6461,45 @@ header .logo{display:none!important}
  function openGateIfNeeded(){if(!localStorage.getItem('nd17_tipo'))showGate();else{ensureMainForms();updateBar();cartTotalSync()}}
  function patchOpenCart(){if(window.__nd17Cart)return;const old=window.abrirCarrinho;if(typeof old!=='function')return;window.abrirCarrinho=function(){ensureMainForms();const r=old.apply(this,arguments);setTimeout(cartTotalSync,30);return r};window.__nd17Cart=true}
  function patchBuildCheckout(){if(typeof window.buildCheckout==='function'&&!window.buildCheckout.__nd17){const old=window.buildCheckout;window.buildCheckout=function(){const r=old.apply(this,arguments);setTimeout(()=>{ensureMainForms();cartTotalSync();setupAutocomplete();bindFinishButton()},20);return r};window.buildCheckout.__nd17=true}}
- function bindFinishButton(){const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');if(btn){btn.textContent='CONCLUIR #NDBURGS';btn.onclick=ndFinish}}
+ function bindFinishButton(){
+   const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');
+   if(btn){
+     btn.textContent='CONCLUIR #NDBURGS';
+     btn.onclick=function(e){
+       if(e)e.preventDefault();
+       if(typeof window.finalizarPedidoModal==='function'){
+         window.finalizarPedidoModal();
+       }
+     };
+   }
+ }
  function ndFinish(){
    if(!cart().length)return alert('Seu carrinho está vazio.');
    const nome=$('#nomeModal')?.value.trim()||'', tel=$('#telefoneModal')?.value.trim()||'', tipo=$('#tipoPedidoModal')?.value||'ENTREGA', rua=$('#ruaModal')?.value||'', numero=$('#numeroModal')?.value.trim()||'', comp=$('#complementoModal')?.value.trim()||'', pagamento=$('#pagamentoModal')?.value||'', troco=$('#trocoModal')?.value||'', obs=$('#observacaoModal')?.value.trim()||'';
-   if(!nome)return alert('Digite seu nome.'); const td=tel.replace(/\D/g,'');if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
-   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');if(!pagamento)return alert('Escolha uma forma de pagamento.');
-   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0,sub=subtotal(),total=sub+f;if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
-   const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+tel,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
-   if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+aStreet+', Nº '+numero);if(comp)lines.push('COMPLEMENTO: '+comp)}
-   lines.push('', 'ITENS DO PEDIDO');
-   cart().forEach(i=>{
-     const qty=Number(i.quantidade)||1;
-     const itemTotal=(Number(i.preco)||0)*qty;
-     lines.push(qty+'x '+i.nome+' - '+money(itemTotal));
-     if(Array.isArray(i.detalhes)&&i.detalhes.length) lines.push('  '+i.detalhes.join(', '));
-   });
-   lines.push('','SUBTOTAL: '+money(sub),'TAXA DE ENTREGA: '+money(f),'TOTAL DO PEDIDO: '+money(total),'PAGAMENTO: '+pagamento);if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+money(Number(troco)));if(obs)lines.push('OBSERVAÇÃO: '+obs);lines.push('','ND BURGS');
+   if(!nome)return alert('Digite seu nome.');
+   const td=tel.replace(/\D/g,'');
+   if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
+   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';
+   if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');
+   if(!pagamento)return alert('Escolha uma forma de pagamento.');
+   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0;
+   const sub=subtotal(),total=sub+f;
+   if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
+
+   // IMPORTANTE: este é o caminho antigo usado principalmente no computador.
+   // Ele agora usa EXATAMENTE a mesma montagem limpa do WhatsApp.
+   const message=typeof window.ndBuildWhatsAppMessage==='function'
+     ? window.ndBuildWhatsAppMessage()
+     : ('ITENS DO PEDIDO\n\n'+cart().map(i=>{
+         const q=Number(i.quantidade)||1;
+         return q+'x '+String(i.nome||'').toUpperCase()+' - '+money((Number(i.preco)||0)*q);
+       }).join('\n'));
+
    try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
    try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
-   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){};window.location.href=url;
+   const url='https://wa.me/5511963973846?text='+encodeURIComponent(message);
+   try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){}
+   window.location.href=url;
  }
  window.nd17Finish=ndFinish;
  function keepOnlyBest(){
@@ -8868,6 +8887,8 @@ if(document.readyState==='loading'){
     const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
     const lines=[
       'NOVO PEDIDO - ND BURGS',
+      '',
+      'CLIENTE',
       'Nome: '+cleanText(nome),
       'WhatsApp: '+cleanText(telefone),
       'Tipo: '+(data.tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
@@ -8880,23 +8901,122 @@ if(document.readyState==='loading'){
     }
 
     lines.push('');
-    lines.push('Itens:');
+    lines.push('ITENS DO PEDIDO');
+    lines.push('');
+
+    const addSplit=(arr,value)=>{
+      String(value||'')
+        .split(/\s*•\s*/)
+        .map(x=>cleanText(x))
+        .filter(Boolean)
+        .forEach(x=>arr.push(x));
+    };
 
     c.forEach(item=>{
-      const qty=Math.max(1,Number(item.quantidade)||1);
-      lines.push(qty+'x '+cleanText(item.nome));
-      if(Array.isArray(item.detalhes)){
-        item.detalhes.forEach(detail=>{
-          const d=cleanDetail(detail);
-          if(d)lines.push(d);
-        });
-      }
+      const details=Array.isArray(item.detalhes)?item.detalhes:[];
+      let qty=Math.max(1,Number(item.quantidade)||1);
+      const detalhesWhats=[];
+
+      details.forEach(detail=>{
+        let d=cleanDetail(detail);
+        if(!d)return;
+
+        const prefix=d.match(/^Combo\s+\d+\s*•\s*(.*)$/i);
+        if(prefix)d=prefix[1].trim();
+
+        const comboQty=d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+        if(comboQty){
+          qty=Math.max(1,Number(comboQty[1])||1);
+          return;
+        }
+
+        let m;
+
+        // Lanche escolhido no combo.
+        m=d.match(/^LANCHE\s+\d+\s*:\s*(.*)$/i);
+        if(m){
+          detalhesWhats.push('LANCHE '+d.match(/^LANCHE\s+(\d+)/i)[1]+' : '+m[1].trim());
+          return;
+        }
+
+        m=d.match(/^LANCHE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('LANCHE : '+m[1].trim());return;}
+
+        // Lanches fixos de combos que possuem mais de um lanche.
+        m=d.match(/^LANCHES\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){
+          addSplit([],m[1]).forEach(x=>detalhesWhats.push('LANCHE : '+x));
+          return;
+        }
+
+        m=d.match(/^LANCHE\s+FIXO\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('LANCHE : '+m[1].trim());return;}
+
+        // Adicionais continuam identificando o lanche, mas sem o texto interno "Combo X".
+        m=d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL '+m[1].toUpperCase()+' : '+m[2].trim());return;}
+
+        m=d.match(/^ADICIONAL\s+NO\s+LANCHE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL : '+m[1].trim());return;}
+
+        m=d.match(/^ADICIONAL\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL : '+m[1].trim());return;}
+
+        // Molhos escolhidos.
+        m=d.match(/^MOLHOS?\s*:\s*(.*)$/i);
+        if(m){
+          addSplit([],m[1].replace(/\s*\+\s*/g,' • ')).forEach(x=>detalhesWhats.push('MOLHO : '+x));
+          return;
+        }
+
+        // Acompanhamentos, bebidas, sobremesas, brindes e demais seções fixas.
+        m=d.match(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('ACOMPANHAMENTO : '+x));return;}
+
+        m=d.match(/^ACOMPANHAMENTO\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('ACOMPANHAMENTO : '+x));return;}
+
+        m=d.match(/^REFRIGERANTE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('REFRIGERANTE : '+m[1].trim());return;}
+
+        m=d.match(/^BEBIDA\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('BEBIDA : '+m[1].trim());return;}
+
+        m=d.match(/^PASTEL\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('PASTEL : '+m[1].trim());return;}
+
+        m=d.match(/^AÇA[IÍ]\s+(\d+)?\s*300ML\s*:\s*(.*)$/i);
+        if(m){
+          const numero=m[1]?(' '+m[1]):'';
+          detalhesWhats.push('AÇAÍ'+numero+' : '+m[2].trim());
+          return;
+        }
+
+        m=d.match(/^SOBREMESA\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('SOBREMESA : '+x));return;}
+
+        m=d.match(/^BRINDE\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('BRINDE : '+x));return;}
+
+        // Esta informação é interna e não precisa aparecer no WhatsApp.
+        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d))return;
+
+        // Qualquer detalhe novo que o sistema já possua continua sendo enviado,
+        // porém sem o prefixo técnico do combo.
+        detalhesWhats.push(cleanText(d).toUpperCase());
+      });
+
+      const nomeItem=cleanText(item.nome).toUpperCase();
+      const precoItem=(Number(item.preco)||0)*qty;
+      lines.push(qty+'x '+nomeItem+' - '+money(precoItem));
+      detalhesWhats.forEach(x=>lines.push('• '+x));
+      lines.push('');
     });
 
-    lines.push('');
+    lines.push('PAGAMENTO');
     lines.push('Subtotal: '+money(sub));
     lines.push('Taxa de entrega: '+money(taxa));
-    lines.push('Total: '+money(total));
+    lines.push('TOTAL: '+money(total));
     lines.push('Forma de pagamento: '+cleanText(pagamento));
 
     if(pagamento==='DINHEIRO'&&troco){
@@ -8906,6 +9026,7 @@ if(document.readyState==='loading'){
 
     return lines.join('\n');
   }
+  window.ndBuildWhatsAppMessage=buildWhatsAppMessage;
 
   function validate(){
     const c=getCart();
@@ -9046,9 +9167,27 @@ if(document.readyState==='loading'){
 
     const replacement=function(){
       if(!validate())return;
-      pendingOrder={message:buildWhatsAppMessage()};
-      ensureSendGate();
-      $('#ndFinalSendGate').classList.add('show');
+
+      /* Mantém o fluxo original: ao finalizar, abre o WhatsApp diretamente.
+         A única alteração feita aqui é usar a mensagem limpa criada acima. */
+      const message=buildWhatsAppMessage();
+      const url='https://wa.me/5511963973846?text='+encodeURIComponent(message);
+
+      try{
+        const opened=window.open(url,'_blank');
+        if(!opened){
+          window.location.href=url;
+          return;
+        }
+      }catch(e){
+        window.location.href=url;
+        return;
+      }
+
+      /* Mesmo comportamento do fluxo original: limpa o carrinho depois de iniciar o envio. */
+      try{saveLast()}catch(e){}
+      try{clearCart()}catch(e){}
+      try{fecharModalFinalizar()}catch(e){}
     };
 
     replacement.__ndFinalChanges=true;
