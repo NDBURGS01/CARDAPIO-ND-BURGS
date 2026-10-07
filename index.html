@@ -11845,5 +11845,197 @@ else boot();
 })();
 </script>
 
+
+<!-- ND BURGS FINAL WHATSAPP FIX — somente envio/mensagem -->
+<script id="nd-final-whatsapp-real-fix">
+(function(){
+  'use strict';
+
+  const clean = v => String(v == null ? '' : v)
+    .replace(/[\u{1F000}-\u{1FAFF}]/gu,'')
+    .replace(/[\u{2600}-\u{27BF}]/gu,'')
+    .replace(/[*_~`]/g,'')
+    .replace(/[ \t]+/g,' ')
+    .trim();
+
+  const money = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+  const cart = () => Array.isArray(window.carrinho) ? window.carrinho : [];
+
+  function splitValues(value){
+    return String(value || '')
+      .split(/\s*[•]\s*/)
+      .map(clean)
+      .filter(Boolean);
+  }
+
+  function buildMessage(){
+    const c = cart();
+    const nome = document.getElementById('nomeModal')?.value.trim() || '';
+    const telefone = document.getElementById('telefoneModal')?.value.trim() || '';
+    const tipo = document.getElementById('tipoPedidoModal')?.value || 'ENTREGA';
+    const rua = document.getElementById('ruaModal')?.value || '';
+    const numero = document.getElementById('numeroModal')?.value.trim() || '';
+    const complemento = document.getElementById('complementoModal')?.value.trim() || '';
+    const pagamento = document.getElementById('pagamentoModal')?.value || '';
+    const troco = document.getElementById('trocoModal')?.value || '';
+    const observacao = document.getElementById('observacaoModal')?.value.trim() || '';
+
+    const subtotal = c.reduce((s,i) => s + (Number(i.preco)||0) * (Number(i.quantidade)||1), 0);
+    const taxa = tipo === 'ENTREGA' ? Number((window.taxas || {})[rua] || 0) : 0;
+    const total = subtotal + taxa;
+
+    const lines = [
+      'ITENS DO PEDIDO',
+      ''
+    ];
+
+    c.forEach(item => {
+      const details = Array.isArray(item.detalhes) ? item.detalhes : [];
+      let qty = Math.max(1, Number(item.quantidade) || 1);
+      const out = [];
+
+      details.forEach(raw => {
+        let d = clean(raw);
+        if(!d) return;
+
+        const prefix = d.match(/^Combo\s+\d+\s*[•:]\s*(.*)$/i);
+        if(prefix) d = prefix[1].trim();
+
+        const q = d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+        if(q){ qty = Math.max(1, Number(q[1]) || 1); return; }
+
+        let m;
+
+        m = d.match(/^LANCHES?\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('LANCHE : ' + x)); return; }
+
+        m = d.match(/^LANCHES?\s+FIXO\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('LANCHE : ' + x)); return; }
+
+        m = d.match(/^LANCHE\s+(\d+)\s*:\s*(.*)$/i);
+        if(m){ out.push('LANCHE ' + m[1] + ' : ' + m[2].trim()); return; }
+
+        m = d.match(/^LANCHE\s*:\s*(.*)$/i);
+        if(m){ out.push('LANCHE : ' + m[1].trim()); return; }
+
+        m = d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
+        if(m){ out.push('ADICIONAL ' + m[1].toUpperCase() + ' : ' + m[2].trim()); return; }
+
+        m = d.match(/^ADICIONAL(?:\s+NO\s+LANCHE)?\s*:\s*(.*)$/i);
+        if(m){ out.push('ADICIONAL : ' + m[1].trim()); return; }
+
+        m = d.match(/^MOLHOS?\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1].replace(/\s*\+\s*/g,' • ')).forEach(x => out.push('MOLHO : ' + x)); return; }
+
+        m = d.match(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('ACOMPANHAMENTO : ' + x)); return; }
+
+        m = d.match(/^ACOMPANHAMENTO\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('ACOMPANHAMENTO : ' + x)); return; }
+
+        m = d.match(/^REFRIGERANTE\s*:\s*(.*)$/i);
+        if(m){ out.push('REFRIGERANTE : ' + m[1].trim()); return; }
+
+        m = d.match(/^BEBIDA\s*:\s*(.*)$/i);
+        if(m){ out.push('BEBIDA : ' + m[1].trim()); return; }
+
+        m = d.match(/^SOBREMESA\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('SOBREMESA : ' + x)); return; }
+
+        m = d.match(/^BRINDE\s*:\s*(.*)$/i);
+        if(m){ splitValues(m[1]).forEach(x => out.push('BRINDE : ' + x)); return; }
+
+        m = d.match(/^AÇA[IÍ]\s+(\d+)\s+300ML\s*:\s*(.*)$/i);
+        if(m){ out.push('AÇAÍ ' + m[1] + ' : ' + m[2].trim()); return; }
+
+        m = d.match(/^AÇA[IÍ]\s*:\s*(.*)$/i);
+        if(m){ out.push('AÇAÍ : ' + m[1].trim()); return; }
+
+        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d)) return;
+
+        out.push(clean(d).toUpperCase());
+      });
+
+      const nomeItem = clean(item.nome).toUpperCase();
+      const preco = (Number(item.preco) || 0) * qty;
+      lines.push(qty + 'x ' + nomeItem + ' - ' + money(preco));
+      out.forEach(x => lines.push('• ' + x));
+      lines.push('');
+    });
+
+    const cliente = [
+      '',
+      'CLIENTE',
+      'Nome: ' + clean(nome),
+      'WhatsApp: ' + clean(telefone),
+      'Tipo: ' + (tipo === 'ENTREGA' ? 'DELIVERY' : 'RETIRADA')
+    ];
+    if(tipo === 'ENTREGA'){
+      cliente.push('Endereço: ' + clean(rua));
+      cliente.push('Número: ' + clean(numero));
+      if(complemento) cliente.push('Complemento: ' + clean(complemento));
+    }
+
+    lines.push(...cliente);
+    lines.push('', 'PAGAMENTO');
+    lines.push('Subtotal: ' + money(subtotal));
+    lines.push('Taxa de entrega: ' + money(taxa));
+    lines.push('TOTAL: ' + money(total));
+    lines.push('Forma de pagamento: ' + clean(pagamento));
+    if(pagamento === 'DINHEIRO' && troco){
+      lines.push('Troco para: ' + money(Number(String(troco).replace(',','.')) || 0));
+    }
+    if(observacao) lines.push('Observação: ' + clean(observacao));
+
+    return lines.join('\n');
+  }
+
+  function finalSend(){
+    const c = cart();
+    if(!c.length){ alert('Seu carrinho está vazio.'); return; }
+
+    const nome = document.getElementById('nomeModal')?.value.trim() || '';
+    const tel = (document.getElementById('telefoneModal')?.value || '').replace(/\D/g,'');
+    const tipo = document.getElementById('tipoPedidoModal')?.value || 'ENTREGA';
+    const rua = document.getElementById('ruaModal')?.value || '';
+    const numero = document.getElementById('numeroModal')?.value.trim() || '';
+    const pagamento = document.getElementById('pagamentoModal')?.value || '';
+    const subtotal = c.reduce((s,i) => s + (Number(i.preco)||0) * (Number(i.quantidade)||1), 0);
+
+    if(!nome){ alert('Digite seu nome.'); return; }
+    if(tel.length < 10 || tel.length > 11){ alert('Digite um WhatsApp válido com DDD.'); return; }
+    if(tipo === 'ENTREGA' && (!rua || !numero)){ alert('Complete seu endereço.'); return; }
+    if(!pagamento){ alert('Escolha o pagamento.'); return; }
+    if(subtotal < 11.90){ alert('O pedido mínimo é R$ 11,90.'); return; }
+
+    const message = buildMessage();
+    const url = 'https://wa.me/5511963973846?text=' + encodeURIComponent(message);
+
+    /* Guarda antes de sair da página. */
+    try{ if(typeof window.saveLast === 'function') window.saveLast(); }catch(e){}
+
+    /* No computador, navegação direta evita bloqueio de popup. */
+    window.location.assign(url);
+  }
+
+  window.ndBuildWhatsAppMessage = buildMessage;
+  window.finalizarPedidoModal = finalSend;
+  window.ndFinalRealSend = finalSend;
+
+  function bind(){
+    document.querySelectorAll('#modalFinalizar button[onclick*="finalizarPedidoModal"]').forEach(btn=>{
+      btn.onclick = function(e){
+        if(e){ e.preventDefault(); e.stopImmediatePropagation(); }
+        finalSend();
+      };
+    });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, {once:true});
+  else bind();
+  setTimeout(bind, 300);
+  setTimeout(bind, 1000);
+})();
+</script>
 </body>
 </html>
