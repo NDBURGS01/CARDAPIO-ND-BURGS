@@ -6465,22 +6465,30 @@ header .logo{display:none!important}
  function ndFinish(){
    if(!cart().length)return alert('Seu carrinho está vazio.');
    const nome=$('#nomeModal')?.value.trim()||'', tel=$('#telefoneModal')?.value.trim()||'', tipo=$('#tipoPedidoModal')?.value||'ENTREGA', rua=$('#ruaModal')?.value||'', numero=$('#numeroModal')?.value.trim()||'', comp=$('#complementoModal')?.value.trim()||'', pagamento=$('#pagamentoModal')?.value||'', troco=$('#trocoModal')?.value||'', obs=$('#observacaoModal')?.value.trim()||'';
-   if(!nome)return alert('Digite seu nome.'); const td=tel.replace(/\D/g,'');if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
-   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');if(!pagamento)return alert('Escolha uma forma de pagamento.');
-   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0,sub=subtotal(),total=sub+f;if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
-   const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+tel,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
-   if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+aStreet+', Nº '+numero);if(comp)lines.push('COMPLEMENTO: '+comp)}
-   lines.push('', 'ITENS DO PEDIDO');
-   cart().forEach(i=>{
-     const qty=Number(i.quantidade)||1;
-     const itemTotal=(Number(i.preco)||0)*qty;
-     lines.push(qty+'x '+i.nome+' - '+money(itemTotal));
-     if(Array.isArray(i.detalhes)&&i.detalhes.length) lines.push('  '+i.detalhes.join(', '));
-   });
-   lines.push('','SUBTOTAL: '+money(sub),'TAXA DE ENTREGA: '+money(f),'TOTAL DO PEDIDO: '+money(total),'PAGAMENTO: '+pagamento);if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+money(Number(troco)));if(obs)lines.push('OBSERVAÇÃO: '+obs);lines.push('','ND BURGS');
+   if(!nome)return alert('Digite seu nome.');
+   const td=tel.replace(/\D/g,'');
+   if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
+   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';
+   if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');
+   if(!pagamento)return alert('Escolha uma forma de pagamento.');
+   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0;
+   const sub=subtotal(),total=sub+f;
+   if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
+
+   // IMPORTANTE: este é o caminho antigo usado principalmente no computador.
+   // Ele agora usa EXATAMENTE a mesma montagem limpa do WhatsApp.
+   const message=typeof window.ndBuildWhatsAppMessage==='function'
+     ? window.ndBuildWhatsAppMessage()
+     : ('ITENS DO PEDIDO\n\n'+cart().map(i=>{
+         const q=Number(i.quantidade)||1;
+         return q+'x '+String(i.nome||'').toUpperCase()+' - '+money((Number(i.preco)||0)*q);
+       }).join('\n'));
+
    try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
    try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
-   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){};window.location.href=url;
+   const url='https://wa.me/5511963973846?text='+encodeURIComponent(message);
+   try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){}
+   window.location.href=url;
  }
  window.nd17Finish=ndFinish;
  function keepOnlyBest(){
@@ -9007,6 +9015,8 @@ if(document.readyState==='loading'){
 
     return lines.join('\n');
   }
+  window.ndBuildWhatsAppMessage=buildWhatsAppMessage;
+
   function validate(){
     const c=getCart();
     if(!c.length){alert('Adicione pelo menos um produto ao carrinho.');return false}
