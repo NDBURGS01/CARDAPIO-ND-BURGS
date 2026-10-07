@@ -6464,23 +6464,226 @@ header .logo{display:none!important}
  function bindFinishButton(){const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');if(btn){btn.textContent='CONCLUIR #NDBURGS';btn.onclick=ndFinish}}
  function ndFinish(){
    if(!cart().length)return alert('Seu carrinho está vazio.');
-   const nome=$('#nomeModal')?.value.trim()||'', tel=$('#telefoneModal')?.value.trim()||'', tipo=$('#tipoPedidoModal')?.value||'ENTREGA', rua=$('#ruaModal')?.value||'', numero=$('#numeroModal')?.value.trim()||'', comp=$('#complementoModal')?.value.trim()||'', pagamento=$('#pagamentoModal')?.value||'', troco=$('#trocoModal')?.value||'', obs=$('#observacaoModal')?.value.trim()||'';
-   if(!nome)return alert('Digite seu nome.'); const td=tel.replace(/\D/g,'');if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
-   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');if(!pagamento)return alert('Escolha uma forma de pagamento.');
-   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0,sub=subtotal(),total=sub+f;if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
-   const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+tel,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
-   if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+aStreet+', Nº '+numero);if(comp)lines.push('COMPLEMENTO: '+comp)}
-   lines.push('', 'ITENS DO PEDIDO');
+
+   const nome=$('#nomeModal')?.value.trim()||'';
+   const tel=$('#telefoneModal')?.value.trim()||'';
+   const tipo=$('#tipoPedidoModal')?.value||'ENTREGA';
+   const rua=$('#ruaModal')?.value||'';
+   const numero=$('#numeroModal')?.value.trim()||'';
+   const comp=$('#complementoModal')?.value.trim()||'';
+   const pagamento=$('#pagamentoModal')?.value||'';
+   const troco=$('#trocoModal')?.value||'';
+   const obs=$('#observacaoModal')?.value.trim()||'';
+
+   if(!nome)return alert('Digite seu nome.');
+   const td=tel.replace(/\D/g,'');
+   if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
+
+   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';
+   if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');
+   if(!pagamento)return alert('Escolha uma forma de pagamento.');
+
+   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0;
+   const sub=subtotal();
+   const total=sub+f;
+   if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
+
+   function waClean(v){
+     return String(v||'')
+       .replace(/[\u{1F000}-\u{1FAFF}]/gu,'')
+       .replace(/[\u{2600}-\u{27BF}]/gu,'')
+       .replace(/[*_~`]/g,'')
+       .replace(/\s+/g,' ')
+       .trim();
+   }
+
+   function pushDetail(lines,label,value){
+     value=waClean(value);
+     if(!value)return;
+     lines.push('• '+label+' : '+value);
+   }
+
+   function splitValues(value){
+     return waClean(value)
+       .split(/\s*•\s*/)
+       .map(x=>x.trim())
+       .filter(Boolean);
+   }
+
+   function addComboDetail(lines,detail){
+     let d=waClean(detail);
+     if(!d)return;
+
+     /* Remove somente o identificador interno do combo. */
+     d=d.replace(/^Combo\s+\d+\s*•\s*/i,'').trim();
+
+     /* Informações internas que NÃO devem aparecer para o cliente. */
+     if(/^QUANTIDADE\s+DO\s+COMBO\s*:/i.test(d))return;
+     if(/^LANCHE\s+ARTESANAL\s*:\s*SIM$/i.test(d))return;
+
+     let m;
+
+     m=d.match(/^Lanche\s+(\d+)\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'LANCHE '+m[1],m[2]);
+       return;
+     }
+
+     m=d.match(/^Lanche\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'LANCHE',m[1]);
+       return;
+     }
+
+     m=d.match(/^Adicional\s+no\s+Lanche\s+(\d+)\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'ADICIONAL LANCHE '+m[1],m[2]);
+       return;
+     }
+
+     m=d.match(/^Adicional\s+no\s+lanche\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'ADICIONAL LANCHE',m[1]);
+       return;
+     }
+
+     m=d.match(/^Refrigerante\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'REFRIGERANTE',m[1]);
+       return;
+     }
+
+     m=d.match(/^Molhos?\s*:\s*(.+)$/i);
+     if(m){
+       m[1].split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean)
+         .forEach(x=>pushDetail(lines,'MOLHO',x));
+       return;
+     }
+
+     m=d.match(/^Acompanhamentos?\s+fixos?\s*:\s*(.+)$/i);
+     if(m){
+       splitValues(m[1]).forEach(x=>pushDetail(lines,'ACOMPANHAMENTO',x));
+       return;
+     }
+
+     m=d.match(/^Acompanhamento\s*:\s*(.+)$/i);
+     if(m){
+       splitValues(m[1]).forEach(x=>pushDetail(lines,'ACOMPANHAMENTO',x));
+       return;
+     }
+
+     m=d.match(/^Lanches?\s+fixos?\s*:\s*(.+)$/i);
+     if(m){
+       splitValues(m[1]).forEach(x=>pushDetail(lines,'LANCHE',x));
+       return;
+     }
+
+     m=d.match(/^Pastel\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'PASTEL',m[1]);
+       return;
+     }
+
+     m=d.match(/^Sobremesa\s*:\s*(.+)$/i);
+     if(m){
+       splitValues(m[1]).forEach(x=>pushDetail(lines,'SOBREMESA',x));
+       return;
+     }
+
+     m=d.match(/^Brinde\s*:\s*(.+)$/i);
+     if(m){
+       splitValues(m[1]).forEach(x=>pushDetail(lines,'BRINDE',x));
+       return;
+     }
+
+     m=d.match(/^Açaí\s+1\s+300ml\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'AÇAÍ 1',m[1]);
+       return;
+     }
+
+     m=d.match(/^Açaí\s+2\s+300ml\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'AÇAÍ 2',m[1]);
+       return;
+     }
+
+     m=d.match(/^Açaí\s+300ml\s*:\s*(.+)$/i);
+     if(m){
+       pushDetail(lines,'AÇAÍ',m[1]);
+       return;
+     }
+
+     /* Qualquer detalhe realmente existente que não tenha um rótulo conhecido. */
+     pushDetail(lines,'ITEM',d);
+   }
+
+   const lines=[
+     'NOVO PEDIDO - ND BURGS',
+     'CLIENTE: '+waClean(nome),
+     'WHATSAPP: '+waClean(tel),
+     'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
+   ];
+
+   if(tipo==='ENTREGA'){
+     lines.push('ENDEREÇO: '+waClean(aStreet)+', Nº '+waClean(numero));
+     if(comp)lines.push('COMPLEMENTO: '+waClean(comp));
+   }
+
+   lines.push('');
+   lines.push('ITENS DO PEDIDO');
+   lines.push('');
+
    cart().forEach(i=>{
-     const qty=Number(i.quantidade)||1;
-     const itemTotal=(Number(i.preco)||0)*qty;
-     lines.push(qty+'x '+i.nome+' - '+money(itemTotal));
-     if(Array.isArray(i.detalhes)&&i.detalhes.length) lines.push('  '+i.detalhes.join(', '));
+     const detalhes=Array.isArray(i.detalhes)?i.detalhes:[];
+     let comboQty=0;
+
+     detalhes.forEach(detail=>{
+       const m=String(detail||'').match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+       if(m)comboQty=Math.max(1,Number(m[1])||1);
+     });
+
+     const isCombo=comboQty>0||detalhes.some(d=>/^Combo\s+\d+\s*•/i.test(String(d||'')));
+     const qty=isCombo?comboQty:Math.max(1,Number(i.quantidade)||1);
+
+     /*
+      * Para combos, i.preco já é o valor total do combo com adicionais
+      * e com a quantidade escolhida. Não multiplicar novamente.
+      * Para produtos normais, preço x quantidade continua igual.
+      */
+     const itemTotal=isCombo
+       ? Number(i.preco)||0
+       : (Number(i.preco)||0)*qty;
+
+     lines.push(qty+'x '+waClean(i.nome)+' - '+money(itemTotal));
+
+     detalhes.forEach(detail=>addComboDetail(lines,detail));
+     lines.push('');
    });
-   lines.push('','SUBTOTAL: '+money(sub),'TAXA DE ENTREGA: '+money(f),'TOTAL DO PEDIDO: '+money(total),'PAGAMENTO: '+pagamento);if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+money(Number(troco)));if(obs)lines.push('OBSERVAÇÃO: '+obs);lines.push('','ND BURGS');
+
+   lines.push('SUBTOTAL: '+money(sub));
+   lines.push('TAXA DE ENTREGA: '+money(f));
+   lines.push('TOTAL DO PEDIDO: '+money(total));
+   lines.push('PAGAMENTO: '+waClean(pagamento));
+
+   if(pagamento==='DINHEIRO'&&troco){
+     lines.push('TROCO PARA: '+money(Number(String(troco).replace(',','.'))||0));
+   }
+
+   if(obs)lines.push('OBSERVAÇÃO: '+waClean(obs));
+   lines.push('');
+   lines.push('ND BURGS');
+
    try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
-   try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
-   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){};window.location.href=url;
+   try{
+     if(Array.isArray(window.carrinho))window.carrinho.length=0;
+     localStorage.removeItem('carrinho');
+     localStorage.removeItem('ndburgs_carrinho');
+   }catch(e){}
+
+   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));
+   try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){}
+   window.location.href=url;
  }
  window.nd17Finish=ndFinish;
  function keepOnlyBest(){
@@ -8868,170 +9071,35 @@ if(document.readyState==='loading'){
     const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
     const lines=[
       'NOVO PEDIDO - ND BURGS',
-      '',
-      'ITENS DO PEDIDO',
-      ''
-    ];
-
-    const splitValues=(value)=>String(value||'')
-      .split(/\s*•\s*/)
-      .map(x=>cleanText(x).trim())
-      .filter(Boolean);
-
-    c.forEach(item=>{
-      const details=Array.isArray(item.detalhes)?item.detalhes:[];
-      let qty=Math.max(1,Number(item.quantidade)||1);
-      const out=[];
-
-      details.forEach(detail=>{
-        let d=cleanDetail(detail);
-        if(!d)return;
-
-        /* Remove o identificador interno "Combo 1 •". */
-        const prefix=d.match(/^Combo\s+\d+\s*•\s*(.*)$/i);
-        if(prefix)d=prefix[1].trim();
-
-        /* A quantidade real do combo fica gravada nos detalhes. */
-        const comboQty=d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
-        if(comboQty){
-          qty=Math.max(1,Number(comboQty[1])||1);
-          return;
-        }
-
-        let m;
-
-        /* Lanches escolhidos. */
-        m=d.match(/^LANCHE\s+(\d+)\s*:\s*(.*)$/i);
-        if(m){
-          out.push('LANCHE '+m[1]+' : '+m[2].trim());
-          return;
-        }
-        m=d.match(/^LANCHE\s*:\s*(.*)$/i);
-        if(m){
-          out.push('LANCHE : '+m[1].trim());
-          return;
-        }
-
-        /* Lanches fixos de combos. */
-        m=d.match(/^LANCHES\s+FIXOS\s*:\s*(.*)$/i);
-        if(m){
-          splitValues(m[1]).forEach(x=>out.push('LANCHE : '+x));
-          return;
-        }
-        m=d.match(/^LANCHE\s+FIXO\s*:\s*(.*)$/i);
-        if(m){
-          out.push('LANCHE : '+m[1].trim());
-          return;
-        }
-
-        /* Adicionais. */
-        m=d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
-        if(m){
-          out.push('ADICIONAL '+m[1].toUpperCase()+' : '+m[2].trim());
-          return;
-        }
-        m=d.match(/^ADICIONAL\s+NO\s+LANCHE\s*:\s*(.*)$/i);
-        if(m){
-          out.push('ADICIONAL : '+m[1].trim());
-          return;
-        }
-        m=d.match(/^ADICIONAL\s*:\s*(.*)$/i);
-        if(m){
-          out.push('ADICIONAL : '+m[1].trim());
-          return;
-        }
-
-        /* Molhos. Cada molho vira uma linha. */
-        m=d.match(/^MOLHOS?\s*:\s*(.*)$/i);
-        if(m){
-          String(m[1]).split(/\s*\+\s*|\s*•\s*/)
-            .map(x=>cleanText(x)).filter(Boolean)
-            .forEach(x=>out.push('MOLHO : '+x));
-          return;
-        }
-
-        /* Acompanhamentos fixos ou escolhidos. */
-        m=d.match(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*(.*)$/i);
-        if(m){
-          splitValues(m[1]).forEach(x=>out.push('ACOMPANHAMENTO : '+x));
-          return;
-        }
-        m=d.match(/^ACOMPANHAMENTO\s*:\s*(.*)$/i);
-        if(m){
-          splitValues(m[1]).forEach(x=>out.push('ACOMPANHAMENTO : '+x));
-          return;
-        }
-
-        /* Bebidas. */
-        m=d.match(/^REFRIGERANTE\s*:\s*(.*)$/i);
-        if(m){
-          out.push('REFRIGERANTE : '+m[1].trim());
-          return;
-        }
-        m=d.match(/^BEBIDA\s*:\s*(.*)$/i);
-        if(m){
-          out.push('BEBIDA : '+m[1].trim());
-          return;
-        }
-
-        /* Sobremesas e brindes fixos. */
-        m=d.match(/^SOBREMESA\s*:\s*(.*)$/i);
-        if(m){
-          splitValues(m[1]).forEach(x=>out.push('SOBREMESA : '+x));
-          return;
-        }
-        m=d.match(/^BRINDE\s*:\s*(.*)$/i);
-        if(m){
-          splitValues(m[1]).forEach(x=>out.push('BRINDE : '+x));
-          return;
-        }
-
-        /* Açaí dentro de combos. */
-        m=d.match(/^AÇA[IÍ]\s+(\d+)(?:\s+300ML)?\s*:\s*(.*)$/i);
-        if(m){
-          out.push('AÇAÍ '+m[1]+' : '+m[2].trim());
-          return;
-        }
-        m=d.match(/^AÇA[IÍ]\s*:\s*(.*)$/i);
-        if(m){
-          out.push('AÇAÍ : '+m[1].trim());
-          return;
-        }
-
-        /* Informação técnica interna que não deve aparecer no WhatsApp. */
-        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d))return;
-
-        /* Qualquer detalhe novo continua aparecendo, mas sem prefixo técnico. */
-        out.push(cleanText(d).toUpperCase());
-      });
-
-      const nomeItem=cleanText(item.nome).toUpperCase();
-      const precoItem=(Number(item.preco)||0)*qty;
-
-      lines.push(qty+'x '+nomeItem+' - '+money(precoItem));
-      out.forEach(x=>lines.push('• '+x));
-      lines.push('');
-    });
-
-    const cliente=[
-      'CLIENTE',
       'Nome: '+cleanText(nome),
       'WhatsApp: '+cleanText(telefone),
       'Tipo: '+(data.tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
     ];
 
     if(data.tipo==='ENTREGA'){
-      cliente.push('Endereço: '+cleanText(data.rua));
-      cliente.push('Número: '+cleanText(data.numero));
-      if(complemento)cliente.push('Complemento: '+cleanText(complemento));
+      lines.push('Endereço: '+cleanText(data.rua));
+      lines.push('Número: '+cleanText(data.numero));
+      if(complemento)lines.push('Complemento: '+cleanText(complemento));
     }
 
-    lines.push(...cliente);
     lines.push('');
-    lines.push('PAGAMENTO');
+    lines.push('Itens:');
+
+    c.forEach(item=>{
+      const qty=Math.max(1,Number(item.quantidade)||1);
+      lines.push(qty+'x '+cleanText(item.nome));
+      if(Array.isArray(item.detalhes)){
+        item.detalhes.forEach(detail=>{
+          const d=cleanDetail(detail);
+          if(d)lines.push(d);
+        });
+      }
+    });
+
+    lines.push('');
     lines.push('Subtotal: '+money(sub));
     lines.push('Taxa de entrega: '+money(taxa));
-    lines.push('TOTAL: '+money(total));
+    lines.push('Total: '+money(total));
     lines.push('Forma de pagamento: '+cleanText(pagamento));
 
     if(pagamento==='DINHEIRO'&&troco){
