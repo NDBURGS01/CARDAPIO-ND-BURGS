@@ -8867,9 +8867,9 @@ if(document.readyState==='loading'){
 
     const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
     const lines=[
-      '🍔 NOVO PEDIDO - ND BURGS',
+      'NOVO PEDIDO - ND BURGS',
       '',
-      '👤 CLIENTE',
+      'CLIENTE',
       'Nome: '+cleanText(nome),
       'WhatsApp: '+cleanText(telefone),
       'Tipo: '+(data.tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
@@ -8882,10 +8882,10 @@ if(document.readyState==='loading'){
     }
 
     lines.push('');
-    lines.push('🛒 PEDIDO');
+    lines.push('ITENS DO PEDIDO');
     lines.push('');
 
-    const addValues=(arr,value)=>{
+    const addSplit=(arr,value)=>{
       String(value||'')
         .split(/\s*•\s*/)
         .map(x=>cleanText(x))
@@ -8896,186 +8896,105 @@ if(document.readyState==='loading'){
     c.forEach(item=>{
       const details=Array.isArray(item.detalhes)?item.detalhes:[];
       let qty=Math.max(1,Number(item.quantidade)||1);
-      let hasCombo=false;
-      const lanches=[];
-      const adicionais=[];
-      const molhos=[];
-      const acompanhamentos=[];
-      const bebidas=[];
-      const pasteis=[];
-      const acais=[];
-      const sobremesas=[];
-      const brindes=[];
-      const outros=[];
+      const detalhesWhats=[];
 
       details.forEach(detail=>{
         let d=cleanDetail(detail);
         if(!d)return;
 
-        const comboMatch=d.match(/^Combo\s+\d+\s*•\s*(.*)$/i);
-        if(comboMatch){
-          hasCombo=true;
-          d=comboMatch[1].trim();
-        }
+        const prefix=d.match(/^Combo\s+\d+\s*•\s*(.*)$/i);
+        if(prefix)d=prefix[1].trim();
 
-        const qtyMatch=d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
-        if(qtyMatch){
-          hasCombo=true;
-          qty=Math.max(1,Number(qtyMatch[1])||1);
+        const comboQty=d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+        if(comboQty){
+          qty=Math.max(1,Number(comboQty[1])||1);
           return;
         }
 
-        if(/^LANCHE\s+\d+\s*:/i.test(d)){
-          hasCombo=true;
-          lanches.push(d.replace(/^LANCHE\s+\d+\s*:\s*/i,'').trim());
+        let m;
+
+        // Lanche escolhido no combo.
+        m=d.match(/^LANCHE\s+\d+\s*:\s*(.*)$/i);
+        if(m){
+          detalhesWhats.push('LANCHE '+d.match(/^LANCHE\s+(\d+)/i)[1]+' : '+m[1].trim());
           return;
         }
 
-        if(/^LANCHE\s*:/i.test(d)){
-          hasCombo=true;
-          lanches.push(d.replace(/^LANCHE\s*:\s*/i,'').trim());
+        m=d.match(/^LANCHE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('LANCHE : '+m[1].trim());return;}
+
+        // Lanches fixos de combos que possuem mais de um lanche.
+        m=d.match(/^LANCHES\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){
+          addSplit([],m[1]).forEach(x=>detalhesWhats.push('LANCHE : '+x));
           return;
         }
 
-        if(/^LANCHE\s+FIXO\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(lanches,d.replace(/^LANCHE\s+FIXO\s*:\s*/i,''));
+        m=d.match(/^LANCHE\s+FIXO\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('LANCHE : '+m[1].trim());return;}
+
+        // Adicionais continuam identificando o lanche, mas sem o texto interno "Combo X".
+        m=d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL '+m[1].toUpperCase()+' : '+m[2].trim());return;}
+
+        m=d.match(/^ADICIONAL\s+NO\s+LANCHE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL : '+m[1].trim());return;}
+
+        m=d.match(/^ADICIONAL\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('ADICIONAL : '+m[1].trim());return;}
+
+        // Molhos escolhidos.
+        m=d.match(/^MOLHOS?\s*:\s*(.*)$/i);
+        if(m){
+          addSplit([],m[1].replace(/\s*\+\s*/g,' • ')).forEach(x=>detalhesWhats.push('MOLHO : '+x));
           return;
         }
 
-        if(/^LANCHES\s+FIXOS\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(lanches,d.replace(/^LANCHES\s+FIXOS\s*:\s*/i,''));
+        // Acompanhamentos, bebidas, sobremesas, brindes e demais seções fixas.
+        m=d.match(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('ACOMPANHAMENTO : '+x));return;}
+
+        m=d.match(/^ACOMPANHAMENTO\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('ACOMPANHAMENTO : '+x));return;}
+
+        m=d.match(/^REFRIGERANTE\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('REFRIGERANTE : '+m[1].trim());return;}
+
+        m=d.match(/^BEBIDA\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('BEBIDA : '+m[1].trim());return;}
+
+        m=d.match(/^PASTEL\s*:\s*(.*)$/i);
+        if(m){detalhesWhats.push('PASTEL : '+m[1].trim());return;}
+
+        m=d.match(/^AÇA[IÍ]\s+(\d+)?\s*300ML\s*:\s*(.*)$/i);
+        if(m){
+          const numero=m[1]?(' '+m[1]):'';
+          detalhesWhats.push('AÇAÍ'+numero+' : '+m[2].trim());
           return;
         }
 
-        if(/^ADICIONAL\s+NO\s+LANCHE\s+\d+\s*:/i.test(d)){
-          hasCombo=true;
-          const m=d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
-          adicionais.push((m?.[1]||'Lanche')+': '+(m?.[2]||'').trim());
-          return;
-        }
+        m=d.match(/^SOBREMESA\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('SOBREMESA : '+x));return;}
 
-        if(/^ADICIONAL\s+NO\s+LANCHE\s*:/i.test(d)){
-          hasCombo=true;
-          adicionais.push(d.replace(/^ADICIONAL\s+NO\s+LANCHE\s*:\s*/i,'').trim());
-          return;
-        }
+        m=d.match(/^BRINDE\s*:\s*(.*)$/i);
+        if(m){addSplit([],m[1]).forEach(x=>detalhesWhats.push('BRINDE : '+x));return;}
 
-        if(/^ADICIONAL\s*:/i.test(d)){
-          adicionais.push(d.replace(/^ADICIONAL\s*:\s*/i,'').trim());
-          return;
-        }
+        // Esta informação é interna e não precisa aparecer no WhatsApp.
+        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d))return;
 
-        if(/^MOLHOS?\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(molhos,d.replace(/^MOLHOS?\s*:\s*/i,'').replace(/\s*\+\s*/g,' • '));
-          return;
-        }
-
-        if(/^ACOMPANHAMENTOS?\s+FIXOS\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(acompanhamentos,d.replace(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*/i,''));
-          return;
-        }
-
-        if(/^ACOMPANHAMENTO\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(acompanhamentos,d.replace(/^ACOMPANHAMENTO\s*:\s*/i,''));
-          return;
-        }
-
-        if(/^REFRIGERANTE\s*:/i.test(d)){
-          hasCombo=true;
-          bebidas.push(d.replace(/^REFRIGERANTE\s*:\s*/i,'').trim());
-          return;
-        }
-
-        if(/^BEBIDA\s*:/i.test(d)){
-          hasCombo=true;
-          bebidas.push(d.replace(/^BEBIDA\s*:\s*/i,'').trim());
-          return;
-        }
-
-        if(/^PASTEL\s*:/i.test(d)){
-          hasCombo=true;
-          pasteis.push(d.replace(/^PASTEL\s*:\s*/i,'').trim());
-          return;
-        }
-
-        if(/^AÇA[IÍ]\s+\d?\s*300ML\s*:/i.test(d)){
-          hasCombo=true;
-          acais.push(d.replace(/^AÇA[IÍ]\s+\d?\s*300ML\s*:\s*/i,'').trim());
-          return;
-        }
-
-        if(/^SOBREMESA\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(sobremesas,d.replace(/^SOBREMESA\s*:\s*/i,''));
-          return;
-        }
-
-        if(/^BRINDE\s*:/i.test(d)){
-          hasCombo=true;
-          addValues(brindes,d.replace(/^BRINDE\s*:\s*/i,''));
-          return;
-        }
-
-        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d)){
-          hasCombo=true;
-          return;
-        }
-
-        outros.push(d);
+        // Qualquer detalhe novo que o sistema já possua continua sendo enviado,
+        // porém sem o prefixo técnico do combo.
+        detalhesWhats.push(cleanText(d).toUpperCase());
       });
 
-      const nomeItem=cleanText(item.nome);
-      lines.push((hasCombo?'🍔 ':'• ')+nomeItem);
-      lines.push('Quantidade: '+qty);
-
-      if(lanches.length){
-        lines.push('Lanches:');
-        lanches.forEach(x=>lines.push('• '+x));
-      }
-      if(adicionais.length){
-        lines.push('Adicionais:');
-        adicionais.forEach(x=>lines.push('• '+x));
-      }
-      if(molhos.length){
-        lines.push('Molhos:');
-        molhos.forEach(x=>lines.push('• '+x));
-      }
-      if(acompanhamentos.length){
-        lines.push('Acompanhamentos:');
-        acompanhamentos.forEach(x=>lines.push('• '+x));
-      }
-      if(bebidas.length){
-        lines.push('Bebidas:');
-        bebidas.forEach(x=>lines.push('• '+x));
-      }
-      if(pasteis.length){
-        lines.push('Pastéis:');
-        pasteis.forEach(x=>lines.push('• '+x));
-      }
-      if(acais.length){
-        lines.push('Açaí:');
-        acais.forEach(x=>lines.push('• '+x));
-      }
-      if(sobremesas.length){
-        lines.push('Sobremesas:');
-        sobremesas.forEach(x=>lines.push('• '+x));
-      }
-      if(brindes.length){
-        lines.push('Brindes:');
-        brindes.forEach(x=>lines.push('• '+x));
-      }
-      if(outros.length){
-        outros.forEach(x=>lines.push('• '+x));
-      }
+      const nomeItem=cleanText(item.nome).toUpperCase();
+      const precoItem=(Number(item.preco)||0)*qty;
+      lines.push(qty+'x '+nomeItem+' - '+money(precoItem));
+      detalhesWhats.forEach(x=>lines.push('• '+x));
       lines.push('');
     });
 
-    lines.push('💰 PAGAMENTO');
+    lines.push('PAGAMENTO');
     lines.push('Subtotal: '+money(sub));
     lines.push('Taxa de entrega: '+money(taxa));
     lines.push('TOTAL: '+money(total));
