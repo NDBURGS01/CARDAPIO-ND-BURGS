@@ -11715,43 +11715,67 @@ else boot();
     lines.push('','ITENS DO PEDIDO');
 
     /*
-     * AGRUPAMENTO FINAL DOS ITENS:
-     * Se o cliente adicionar exatamente o mesmo combo mais de uma vez,
-     * ele deve aparecer como 2x / 3x / 4x em UMA única linha.
-     * Combos com escolhas diferentes continuam separados.
+     * AGRUPAMENTO CORRETO DOS COMBOS:
+     * Um item do carrinho pode conter X2/X3/X4 unidades, e os detalhes
+     * dessas unidades ficam dentro do mesmo item, separados por "Combo N •".
+     * Nunca podemos juntar os detalhes de todas as unidades numa única lista.
+     * Primeiro separamos cada unidade; depois agrupamos somente unidades
+     * realmente idênticas.
      */
     const grupos=[];
     const mapa=new Map();
 
-    c.forEach(item=>{
+    function comboUnits(item){
       const details=Array.isArray(item.detalhes)?item.detalhes:[];
       const qDetail=details.find(d=>/QUANTIDADE\s+DO\s+COMBO\s*:\s*X\d+/i.test(String(d||'')));
       const qm=qDetail&&String(qDetail).match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
-      const qty=qm?Math.max(1,Number(qm[1])||1):Math.max(1,Number(item.quantidade)||1);
+      const q=Math.max(1,Number(qm?qm[1]:item.quantidade)||1);
+      const unitDetails=Array.from({length:q},()=>[]);
+      let foundUnit=false;
 
-      /*
-       * Para descobrir se dois combos são realmente iguais, ignoramos
-       * apenas o número da unidade (Combo 1, Combo 2...), mantendo todas
-       * as escolhas, adicionais, bebidas, molhos etc.
-       */
-      const assinaturaDetalhes=details
-        .filter(d=>!/^\s*[📦]?\s*QUANTIDADE\s+DO\s+COMBO\s*:/i.test(String(d||'')))
-        .map(d=>String(d||'').replace(/^\s*Combo\s+\d+\s*•\s*/i,'').trim().toUpperCase())
-        .filter(Boolean)
-        .join('\n');
+      details.forEach(d=>{
+        const raw=String(d==null?'':d).trim();
+        if(!raw || /^📦?\s*QUANTIDADE\s+DO\s+COMBO\s*:/i.test(raw))return;
+        const m=raw.match(/^Combo\s+(\d+)\s*•\s*(.*)$/i);
+        if(m){
+          const idx=Number(m[1])-1;
+          if(idx>=0 && idx<q){ unitDetails[idx].push(m[2]); foundUnit=true; }
+          return;
+        }
+        // Detalhes antigos sem prefixo de unidade: mantemos no primeiro.
+        unitDetails[0].push(raw);
+      });
 
-      const chave=clean(item.nome).toUpperCase()+'\n'+assinaturaDetalhes;
-      const valor=Number(item.preco)||0;
-      let grupo=mapa.get(chave);
-
-      if(!grupo){
-        grupo={nome:clean(item.nome),quantidade:0,total:0,detalhes:details};
-        mapa.set(chave,grupo);
-        grupos.push(grupo);
+      if(!foundUnit && q>1){
+        // Formato antigo: se não houver separação por unidade, não inventamos
+        // escolhas diferentes. O mesmo detalhe representa todas as unidades.
+        for(let i=1;i<q;i++) unitDetails[i]=unitDetails[0].slice();
       }
 
-      grupo.quantidade+=qty;
-      grupo.total+=valor;
+      return {q,unitDetails};
+    }
+
+    c.forEach(item=>{
+      const nome=clean(item.nome);
+      const valorTotal=Number(item.preco)||0;
+      const {q,unitDetails}=comboUnits(item);
+      const valorUnit=q>0?valorTotal/q:valorTotal;
+
+      unitDetails.forEach((details,idx)=>{
+        const normalized=details
+          .map(d=>String(d||'').replace(/^\s*Combo\s+\d+\s*•\s*/i,'').trim().toUpperCase())
+          .filter(Boolean)
+          .join('\n');
+        const chave=nome.toUpperCase()+'\n'+normalized;
+        let grupo=mapa.get(chave);
+        if(!grupo){
+          grupo={nome,quantidade:0,total:0,detalhes:details.slice()};
+          mapa.set(chave,grupo);
+          grupos.push(grupo);
+        }
+        grupo.quantidade++;
+        grupo.total+=valorUnit;
+      });
     });
 
     grupos.forEach(grupo=>{
