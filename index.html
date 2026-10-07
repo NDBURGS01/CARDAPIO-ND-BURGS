@@ -8868,6 +8868,7 @@ if(document.readyState==='loading'){
     const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
     const lines=[
       'NOVO PEDIDO - ND BURGS',
+      '',
       'Nome: '+cleanText(nome),
       'WhatsApp: '+cleanText(telefone),
       'Tipo: '+(data.tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
@@ -8880,20 +8881,98 @@ if(document.readyState==='loading'){
     }
 
     lines.push('');
-    lines.push('Itens:');
+    lines.push('==============================');
+    lines.push('ITENS DO PEDIDO');
+    lines.push('==============================');
 
     c.forEach(item=>{
       const qty=Math.max(1,Number(item.quantidade)||1);
-      lines.push(qty+'x '+cleanText(item.nome));
-      if(Array.isArray(item.detalhes)){
-        item.detalhes.forEach(detail=>{
-          const d=cleanDetail(detail);
-          if(d)lines.push(d);
-        });
+      const nomeItem=cleanText(item.nome);
+
+      lines.push('');
+      lines.push('COMBO / ITEM: '+nomeItem);
+      lines.push('QUANTIDADE: X'+qty);
+
+      if(!Array.isArray(item.detalhes)||!item.detalhes.length)return;
+
+      const lanches=[];
+      const adicionais=[];
+      const molhos=[];
+      const acompanhamentos=[];
+      const outros=[];
+
+      item.detalhes.forEach(detail=>{
+        let d=cleanDetail(detail);
+        if(!d)return;
+
+        d=d.replace(/^Combo\s+\d+\s*•\s*/i,'');
+
+        if(/^QUANTIDADE\s+DO\s+COMBO\s*:/i.test(d))return;
+
+        if(/^Lanche\s+\d+\s*:/i.test(d)){
+          lanches.push(d);
+          return;
+        }
+
+        if(/^Adicional\s+no\s+Lanche\s+\d+\s*:/i.test(d)){
+          adicionais.push(d);
+          return;
+        }
+
+        if(/^Molhos?\s*:/i.test(d)){
+          const valor=d.replace(/^Molhos?\s*:\s*/i,'').trim();
+          if(valor){
+            valor.split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean).forEach(x=>molhos.push(x));
+          }
+          return;
+        }
+
+        if(/^ACOMPANHAMENTOS\s+FIXOS\s*:/i.test(d)){
+          const valor=d.replace(/^ACOMPANHAMENTOS\s+FIXOS\s*:\s*/i,'').trim();
+          if(valor){
+            valor.split(/\s*•\s*/).map(x=>x.trim()).filter(Boolean).forEach(x=>acompanhamentos.push(x));
+          }
+          return;
+        }
+
+        outros.push(d);
+      });
+
+      if(lanches.length){
+        lines.push('');
+        lines.push('Lanches:');
+        lanches.forEach(x=>lines.push('- '+x));
+      }
+
+      if(adicionais.length){
+        lines.push('');
+        lines.push('Adicionais:');
+        adicionais.forEach(x=>lines.push('- '+x));
+      }
+
+      if(molhos.length){
+        lines.push('');
+        lines.push('Molhos:');
+        molhos.forEach(x=>lines.push('- '+x));
+      }
+
+      if(acompanhamentos.length){
+        lines.push('');
+        lines.push('Acompanhamentos fixos:');
+        acompanhamentos.forEach(x=>lines.push('- '+x));
+      }
+
+      if(outros.length){
+        lines.push('');
+        lines.push('Outros:');
+        outros.forEach(x=>lines.push('- '+x));
       }
     });
 
     lines.push('');
+    lines.push('==============================');
+    lines.push('RESUMO DO PAGAMENTO');
+    lines.push('==============================');
     lines.push('Subtotal: '+money(sub));
     lines.push('Taxa de entrega: '+money(taxa));
     lines.push('Total: '+money(total));
