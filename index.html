@@ -8867,8 +8867,9 @@ if(document.readyState==='loading'){
 
     const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
     const lines=[
-      'NOVO PEDIDO - ND BURGS',
+      '🍔 NOVO PEDIDO - ND BURGS',
       '',
+      '👤 CLIENTE',
       'Nome: '+cleanText(nome),
       'WhatsApp: '+cleanText(telefone),
       'Tipo: '+(data.tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
@@ -8881,101 +8882,203 @@ if(document.readyState==='loading'){
     }
 
     lines.push('');
-    lines.push('==============================');
-    lines.push('ITENS DO PEDIDO');
-    lines.push('==============================');
+    lines.push('🛒 PEDIDO');
+    lines.push('');
+
+    const addValues=(arr,value)=>{
+      String(value||'')
+        .split(/\s*•\s*/)
+        .map(x=>cleanText(x))
+        .filter(Boolean)
+        .forEach(x=>arr.push(x));
+    };
 
     c.forEach(item=>{
-      const qty=Math.max(1,Number(item.quantidade)||1);
-      const nomeItem=cleanText(item.nome);
-
-      lines.push('');
-      lines.push('COMBO / ITEM: '+nomeItem);
-      lines.push('QUANTIDADE: X'+qty);
-
-      if(!Array.isArray(item.detalhes)||!item.detalhes.length)return;
-
+      const details=Array.isArray(item.detalhes)?item.detalhes:[];
+      let qty=Math.max(1,Number(item.quantidade)||1);
+      let hasCombo=false;
       const lanches=[];
       const adicionais=[];
       const molhos=[];
       const acompanhamentos=[];
+      const bebidas=[];
+      const pasteis=[];
+      const acais=[];
+      const sobremesas=[];
+      const brindes=[];
       const outros=[];
 
-      item.detalhes.forEach(detail=>{
+      details.forEach(detail=>{
         let d=cleanDetail(detail);
         if(!d)return;
 
-        d=d.replace(/^Combo\s+\d+\s*•\s*/i,'');
+        const comboMatch=d.match(/^Combo\s+\d+\s*•\s*(.*)$/i);
+        if(comboMatch){
+          hasCombo=true;
+          d=comboMatch[1].trim();
+        }
 
-        if(/^QUANTIDADE\s+DO\s+COMBO\s*:/i.test(d))return;
-
-        if(/^Lanche\s+\d+\s*:/i.test(d)){
-          lanches.push(d);
+        const qtyMatch=d.match(/^QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+        if(qtyMatch){
+          hasCombo=true;
+          qty=Math.max(1,Number(qtyMatch[1])||1);
           return;
         }
 
-        if(/^Adicional\s+no\s+Lanche\s+\d+\s*:/i.test(d)){
-          adicionais.push(d);
+        if(/^LANCHE\s+\d+\s*:/i.test(d)){
+          hasCombo=true;
+          lanches.push(d.replace(/^LANCHE\s+\d+\s*:\s*/i,'').trim());
           return;
         }
 
-        if(/^Molhos?\s*:/i.test(d)){
-          const valor=d.replace(/^Molhos?\s*:\s*/i,'').trim();
-          if(valor){
-            valor.split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean).forEach(x=>molhos.push(x));
-          }
+        if(/^LANCHE\s*:/i.test(d)){
+          hasCombo=true;
+          lanches.push(d.replace(/^LANCHE\s*:\s*/i,'').trim());
           return;
         }
 
-        if(/^ACOMPANHAMENTOS\s+FIXOS\s*:/i.test(d)){
-          const valor=d.replace(/^ACOMPANHAMENTOS\s+FIXOS\s*:\s*/i,'').trim();
-          if(valor){
-            valor.split(/\s*•\s*/).map(x=>x.trim()).filter(Boolean).forEach(x=>acompanhamentos.push(x));
-          }
+        if(/^LANCHE\s+FIXO\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(lanches,d.replace(/^LANCHE\s+FIXO\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^LANCHES\s+FIXOS\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(lanches,d.replace(/^LANCHES\s+FIXOS\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^ADICIONAL\s+NO\s+LANCHE\s+\d+\s*:/i.test(d)){
+          hasCombo=true;
+          const m=d.match(/^ADICIONAL\s+NO\s+(LANCHE\s+\d+)\s*:\s*(.*)$/i);
+          adicionais.push((m?.[1]||'Lanche')+': '+(m?.[2]||'').trim());
+          return;
+        }
+
+        if(/^ADICIONAL\s+NO\s+LANCHE\s*:/i.test(d)){
+          hasCombo=true;
+          adicionais.push(d.replace(/^ADICIONAL\s+NO\s+LANCHE\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^ADICIONAL\s*:/i.test(d)){
+          adicionais.push(d.replace(/^ADICIONAL\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^MOLHOS?\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(molhos,d.replace(/^MOLHOS?\s*:\s*/i,'').replace(/\s*\+\s*/g,' • '));
+          return;
+        }
+
+        if(/^ACOMPANHAMENTOS?\s+FIXOS\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(acompanhamentos,d.replace(/^ACOMPANHAMENTOS?\s+FIXOS\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^ACOMPANHAMENTO\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(acompanhamentos,d.replace(/^ACOMPANHAMENTO\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^REFRIGERANTE\s*:/i.test(d)){
+          hasCombo=true;
+          bebidas.push(d.replace(/^REFRIGERANTE\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^BEBIDA\s*:/i.test(d)){
+          hasCombo=true;
+          bebidas.push(d.replace(/^BEBIDA\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^PASTEL\s*:/i.test(d)){
+          hasCombo=true;
+          pasteis.push(d.replace(/^PASTEL\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^AÇA[IÍ]\s+\d?\s*300ML\s*:/i.test(d)){
+          hasCombo=true;
+          acais.push(d.replace(/^AÇA[IÍ]\s+\d?\s*300ML\s*:\s*/i,'').trim());
+          return;
+        }
+
+        if(/^SOBREMESA\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(sobremesas,d.replace(/^SOBREMESA\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^BRINDE\s*:/i.test(d)){
+          hasCombo=true;
+          addValues(brindes,d.replace(/^BRINDE\s*:\s*/i,''));
+          return;
+        }
+
+        if(/^LANCHE\s+ARTESANAL\s*:/i.test(d)){
+          hasCombo=true;
           return;
         }
 
         outros.push(d);
       });
 
+      const nomeItem=cleanText(item.nome);
+      lines.push((hasCombo?'🍔 ':'• ')+nomeItem);
+      lines.push('Quantidade: '+qty);
+
       if(lanches.length){
-        lines.push('');
         lines.push('Lanches:');
-        lanches.forEach(x=>lines.push('- '+x));
+        lanches.forEach(x=>lines.push('• '+x));
       }
-
       if(adicionais.length){
-        lines.push('');
         lines.push('Adicionais:');
-        adicionais.forEach(x=>lines.push('- '+x));
+        adicionais.forEach(x=>lines.push('• '+x));
       }
-
       if(molhos.length){
-        lines.push('');
         lines.push('Molhos:');
-        molhos.forEach(x=>lines.push('- '+x));
+        molhos.forEach(x=>lines.push('• '+x));
       }
-
       if(acompanhamentos.length){
-        lines.push('');
-        lines.push('Acompanhamentos fixos:');
-        acompanhamentos.forEach(x=>lines.push('- '+x));
+        lines.push('Acompanhamentos:');
+        acompanhamentos.forEach(x=>lines.push('• '+x));
       }
-
+      if(bebidas.length){
+        lines.push('Bebidas:');
+        bebidas.forEach(x=>lines.push('• '+x));
+      }
+      if(pasteis.length){
+        lines.push('Pastéis:');
+        pasteis.forEach(x=>lines.push('• '+x));
+      }
+      if(acais.length){
+        lines.push('Açaí:');
+        acais.forEach(x=>lines.push('• '+x));
+      }
+      if(sobremesas.length){
+        lines.push('Sobremesas:');
+        sobremesas.forEach(x=>lines.push('• '+x));
+      }
+      if(brindes.length){
+        lines.push('Brindes:');
+        brindes.forEach(x=>lines.push('• '+x));
+      }
       if(outros.length){
-        lines.push('');
-        lines.push('Outros:');
-        outros.forEach(x=>lines.push('- '+x));
+        outros.forEach(x=>lines.push('• '+x));
       }
+      lines.push('');
     });
 
-    lines.push('');
-    lines.push('==============================');
-    lines.push('RESUMO DO PAGAMENTO');
-    lines.push('==============================');
+    lines.push('💰 PAGAMENTO');
     lines.push('Subtotal: '+money(sub));
     lines.push('Taxa de entrega: '+money(taxa));
-    lines.push('Total: '+money(total));
+    lines.push('TOTAL: '+money(total));
     lines.push('Forma de pagamento: '+cleanText(pagamento));
 
     if(pagamento==='DINHEIRO'&&troco){
@@ -8985,7 +9088,6 @@ if(document.readyState==='loading'){
 
     return lines.join('\n');
   }
-
   function validate(){
     const c=getCart();
     if(!c.length){alert('Adicione pelo menos um produto ao carrinho.');return false}
