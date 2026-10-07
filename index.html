@@ -11713,74 +11713,14 @@ else boot();
     const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+telefone,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
     if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+endereco+', Nº '+numero);if(complemento)lines.push('COMPLEMENTO: '+complemento)}
     lines.push('','ITENS DO PEDIDO');
-
-    /*
-     * AGRUPAMENTO CORRETO DOS COMBOS:
-     * Um item do carrinho pode conter X2/X3/X4 unidades, e os detalhes
-     * dessas unidades ficam dentro do mesmo item, separados por "Combo N •".
-     * Nunca podemos juntar os detalhes de todas as unidades numa única lista.
-     * Primeiro separamos cada unidade; depois agrupamos somente unidades
-     * realmente idênticas.
-     */
-    const grupos=[];
-    const mapa=new Map();
-
-    function comboUnits(item){
+    c.forEach(item=>{
       const details=Array.isArray(item.detalhes)?item.detalhes:[];
       const qDetail=details.find(d=>/QUANTIDADE\s+DO\s+COMBO\s*:\s*X\d+/i.test(String(d||'')));
       const qm=qDetail&&String(qDetail).match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
-      const q=Math.max(1,Number(qm?qm[1]:item.quantidade)||1);
-      const unitDetails=Array.from({length:q},()=>[]);
-      let foundUnit=false;
-
-      details.forEach(d=>{
-        const raw=String(d==null?'':d).trim();
-        if(!raw || /^📦?\s*QUANTIDADE\s+DO\s+COMBO\s*:/i.test(raw))return;
-        const m=raw.match(/^Combo\s+(\d+)\s*•\s*(.*)$/i);
-        if(m){
-          const idx=Number(m[1])-1;
-          if(idx>=0 && idx<q){ unitDetails[idx].push(m[2]); foundUnit=true; }
-          return;
-        }
-        // Detalhes antigos sem prefixo de unidade: mantemos no primeiro.
-        unitDetails[0].push(raw);
-      });
-
-      if(!foundUnit && q>1){
-        // Formato antigo: se não houver separação por unidade, não inventamos
-        // escolhas diferentes. O mesmo detalhe representa todas as unidades.
-        for(let i=1;i<q;i++) unitDetails[i]=unitDetails[0].slice();
-      }
-
-      return {q,unitDetails};
-    }
-
-    c.forEach(item=>{
-      const nome=clean(item.nome);
-      const valorTotal=Number(item.preco)||0;
-      const {q,unitDetails}=comboUnits(item);
-      const valorUnit=q>0?valorTotal/q:valorTotal;
-
-      unitDetails.forEach((details,idx)=>{
-        const normalized=details
-          .map(d=>String(d||'').replace(/^\s*Combo\s+\d+\s*•\s*/i,'').trim().toUpperCase())
-          .filter(Boolean)
-          .join('\n');
-        const chave=nome.toUpperCase()+'\n'+normalized;
-        let grupo=mapa.get(chave);
-        if(!grupo){
-          grupo={nome,quantidade:0,total:0,detalhes:details.slice()};
-          mapa.set(chave,grupo);
-          grupos.push(grupo);
-        }
-        grupo.quantidade++;
-        grupo.total+=valorUnit;
-      });
-    });
-
-    grupos.forEach(grupo=>{
-      lines.push(grupo.quantidade+'x '+grupo.nome+' - '+moneyBR(grupo.total));
-      formatDetails(grupo.detalhes,lines);
+      const qty=qm?Math.max(1,Number(qm[1])||1):Math.max(1,Number(item.quantidade)||1);
+      const itemTotal=qm?(Number(item.preco)||0):(Number(item.preco)||0)*qty;
+      lines.push(qty+'x '+clean(item.nome)+' - '+moneyBR(itemTotal));
+      formatDetails(details,lines);
     });
     lines.push('','SUBTOTAL: '+moneyBR(subtotal),'TAXA DE ENTREGA: '+moneyBR(taxa),'TOTAL DO PEDIDO: '+moneyBR(total),'PAGAMENTO: '+pagamento);
     if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+moneyBR(Number(String(troco).replace(',','.'))||0));
