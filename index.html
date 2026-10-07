@@ -6464,226 +6464,105 @@ header .logo{display:none!important}
  function bindFinishButton(){const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');if(btn){btn.textContent='CONCLUIR #NDBURGS';btn.onclick=ndFinish}}
  function ndFinish(){
    if(!cart().length)return alert('Seu carrinho está vazio.');
+   const nome=$('#nomeModal')?.value.trim()||'', tel=$('#telefoneModal')?.value.trim()||'', tipo=$('#tipoPedidoModal')?.value||'ENTREGA', rua=$('#ruaModal')?.value||'', numero=$('#numeroModal')?.value.trim()||'', comp=$('#complementoModal')?.value.trim()||'', pagamento=$('#pagamentoModal')?.value||'', troco=$('#trocoModal')?.value||'', obs=$('#observacaoModal')?.value.trim()||'';
+   if(!nome)return alert('Digite seu nome.'); const td=tel.replace(/\D/g,'');if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
+   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');if(!pagamento)return alert('Escolha uma forma de pagamento.');
+   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0,sub=subtotal(),total=sub+f;if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
 
-   const nome=$('#nomeModal')?.value.trim()||'';
-   const tel=$('#telefoneModal')?.value.trim()||'';
-   const tipo=$('#tipoPedidoModal')?.value||'ENTREGA';
-   const rua=$('#ruaModal')?.value||'';
-   const numero=$('#numeroModal')?.value.trim()||'';
-   const comp=$('#complementoModal')?.value.trim()||'';
-   const pagamento=$('#pagamentoModal')?.value||'';
-   const troco=$('#trocoModal')?.value||'';
-   const obs=$('#observacaoModal')?.value.trim()||'';
-
-   if(!nome)return alert('Digite seu nome.');
-   const td=tel.replace(/\D/g,'');
-   if(td.length<10||td.length>11)return alert('Digite um WhatsApp válido com DDD.');
-
-   const aStreet=tipo==='ENTREGA'?(rua||addr().street):'';
-   if(tipo==='ENTREGA'&&(!aStreet||!numero))return alert('Complete seu endereço.');
-   if(!pagamento)return alert('Escolha uma forma de pagamento.');
-
-   const f=tipo==='ENTREGA'?Number((window.taxas||{})[aStreet]||0):0;
-   const sub=subtotal();
-   const total=sub+f;
-   if(sub<11.90)return alert('O pedido mínimo é R$ 11,90. Faltam '+money(11.90-sub)+'.');
-
-   function waClean(v){
-     return String(v||'')
-       .replace(/[\u{1F000}-\u{1FAFF}]/gu,'')
-       .replace(/[\u{2600}-\u{27BF}]/gu,'')
-       .replace(/[*_~`]/g,'')
-       .replace(/\s+/g,' ')
-       .trim();
-   }
-
-   function pushDetail(lines,label,value){
-     value=waClean(value);
-     if(!value)return;
-     lines.push('• '+label+' : '+value);
-   }
-
-   function splitValues(value){
-     return waClean(value)
-       .split(/\s*•\s*/)
-       .map(x=>x.trim())
-       .filter(Boolean);
-   }
-
-   function addComboDetail(lines,detail){
-     let d=waClean(detail);
-     if(!d)return;
-
-     /* Remove somente o identificador interno do combo. */
-     d=d.replace(/^Combo\s+\d+\s*•\s*/i,'').trim();
-
-     /* Informações internas que NÃO devem aparecer para o cliente. */
-     if(/^QUANTIDADE\s+DO\s+COMBO\s*:/i.test(d))return;
-     if(/^LANCHE\s+ARTESANAL\s*:\s*SIM$/i.test(d))return;
-
-     let m;
-
-     m=d.match(/^Lanche\s+(\d+)\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'LANCHE '+m[1],m[2]);
-       return;
-     }
-
-     m=d.match(/^Lanche\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'LANCHE',m[1]);
-       return;
-     }
-
-     m=d.match(/^Adicional\s+no\s+Lanche\s+(\d+)\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'ADICIONAL LANCHE '+m[1],m[2]);
-       return;
-     }
-
-     m=d.match(/^Adicional\s+no\s+lanche\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'ADICIONAL LANCHE',m[1]);
-       return;
-     }
-
-     m=d.match(/^Refrigerante\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'REFRIGERANTE',m[1]);
-       return;
-     }
-
-     m=d.match(/^Molhos?\s*:\s*(.+)$/i);
-     if(m){
-       m[1].split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean)
-         .forEach(x=>pushDetail(lines,'MOLHO',x));
-       return;
-     }
-
-     m=d.match(/^Acompanhamentos?\s+fixos?\s*:\s*(.+)$/i);
-     if(m){
-       splitValues(m[1]).forEach(x=>pushDetail(lines,'ACOMPANHAMENTO',x));
-       return;
-     }
-
-     m=d.match(/^Acompanhamento\s*:\s*(.+)$/i);
-     if(m){
-       splitValues(m[1]).forEach(x=>pushDetail(lines,'ACOMPANHAMENTO',x));
-       return;
-     }
-
-     m=d.match(/^Lanches?\s+fixos?\s*:\s*(.+)$/i);
-     if(m){
-       splitValues(m[1]).forEach(x=>pushDetail(lines,'LANCHE',x));
-       return;
-     }
-
-     m=d.match(/^Pastel\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'PASTEL',m[1]);
-       return;
-     }
-
-     m=d.match(/^Sobremesa\s*:\s*(.+)$/i);
-     if(m){
-       splitValues(m[1]).forEach(x=>pushDetail(lines,'SOBREMESA',x));
-       return;
-     }
-
-     m=d.match(/^Brinde\s*:\s*(.+)$/i);
-     if(m){
-       splitValues(m[1]).forEach(x=>pushDetail(lines,'BRINDE',x));
-       return;
-     }
-
-     m=d.match(/^Açaí\s+1\s+300ml\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'AÇAÍ 1',m[1]);
-       return;
-     }
-
-     m=d.match(/^Açaí\s+2\s+300ml\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'AÇAÍ 2',m[1]);
-       return;
-     }
-
-     m=d.match(/^Açaí\s+300ml\s*:\s*(.+)$/i);
-     if(m){
-       pushDetail(lines,'AÇAÍ',m[1]);
-       return;
-     }
-
-     /* Qualquer detalhe realmente existente que não tenha um rótulo conhecido. */
-     pushDetail(lines,'ITEM',d);
-   }
-
-   const lines=[
-     'NOVO PEDIDO - ND BURGS',
-     'CLIENTE: '+waClean(nome),
-     'WHATSAPP: '+waClean(tel),
-     'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')
-   ];
-
-   if(tipo==='ENTREGA'){
-     lines.push('ENDEREÇO: '+waClean(aStreet)+', Nº '+waClean(numero));
-     if(comp)lines.push('COMPLEMENTO: '+waClean(comp));
-   }
-
-   lines.push('');
-   lines.push('ITENS DO PEDIDO');
-   lines.push('');
+   const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+tel,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
+   if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+aStreet+', Nº '+numero);if(comp)lines.push('COMPLEMENTO: '+comp)}
+   lines.push('', 'ITENS DO PEDIDO');
 
    cart().forEach(i=>{
-     const detalhes=Array.isArray(i.detalhes)?i.detalhes:[];
-     let comboQty=0;
+     const rawDetails=Array.isArray(i.detalhes)?i.detalhes:[];
+     let qty=Math.max(1,Number(i.quantidade)||1);
 
-     detalhes.forEach(detail=>{
-       const m=String(detail||'').match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
-       if(m)comboQty=Math.max(1,Number(m[1])||1);
+     const qDetail=rawDetails.find(d=>/QUANTIDADE\s+DO\s+COMBO\s*:\s*X\d+/i.test(String(d||'')));
+     const qm=qDetail&&String(qDetail).match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
+     if(qm)qty=Math.max(1,Number(qm[1])||1);
+
+     const itemTotal=Number(i.preco)||0;
+     lines.push(qty+'x '+String(i.nome||'').trim()+' - '+money(itemTotal));
+
+     rawDetails.forEach(detail=>{
+       let d=String(detail||'').trim();
+       d=d.replace(/^[^A-Za-zÀ-ÿ0-9]*QUANTIDADE\s+DO\s+COMBO\s*:\s*X\d+\s*,?\s*/i,'');
+       d=d.replace(/^Combo\s+\d+\s*•\s*/i,'').trim();
+       if(!d)return;
+
+       let m;
+       if(/^Lanche\s+\d+\s*:/i.test(d)){
+         m=d.match(/^Lanche\s+(\d+)\s*:\s*(.+)$/i);
+         if(m)lines.push('• LANCHE '+m[1]+' : '+m[2].trim());
+         return;
+       }
+       if(/^Lanche\s*:/i.test(d)){
+         lines.push('• LANCHE : '+d.replace(/^Lanche\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^Adicional\s+no\s+Lanche\s+\d+\s*:/i.test(d)){
+         m=d.match(/^Adicional\s+no\s+Lanche\s+(\d+)\s*:\s*(.+)$/i);
+         if(m)lines.push('• ADICIONAL LANCHE '+m[1]+' : '+m[2].trim());
+         return;
+       }
+       if(/^Refrigerante\s*:/i.test(d)){
+         lines.push('• REFRIGERANTE : '+d.replace(/^Refrigerante\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^Molhos?\s*:/i.test(d)){
+         d.replace(/^Molhos?\s*:\s*/i,'').split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean)
+           .forEach(x=>lines.push('• MOLHO : '+x));
+         return;
+       }
+       if(/^ACOMPANHAMENTOS\s+FIXOS\s*:/i.test(d)){
+         d.replace(/^ACOMPANHAMENTOS\s+FIXOS\s*:\s*/i,'').split(/\s*•\s*/).map(x=>x.trim()).filter(Boolean)
+           .forEach(x=>lines.push('• ACOMPANHAMENTO : '+x));
+         return;
+       }
+       if(/^ACOMPANHAMENTO\s*:/i.test(d)){
+         lines.push('• ACOMPANHAMENTO : '+d.replace(/^ACOMPANHAMENTO\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^LANCHE(?:S)?\s+FIXO(?:S)?\s*:/i.test(d)){
+         d.replace(/^LANCHE(?:S)?\s+FIXO(?:S)?\s*:\s*/i,'').split(/\s*•\s*/).map(x=>x.trim()).filter(Boolean)
+           .forEach(x=>lines.push('• LANCHE : '+x));
+         return;
+       }
+       if(/^SOBREMESA\s*:/i.test(d)){
+         lines.push('• SOBREMESA : '+d.replace(/^SOBREMESA\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^BRINDE\s*:/i.test(d)){
+         lines.push('• BRINDE : '+d.replace(/^BRINDE\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^Açaí\s+\d+\s+300ml\s*:/i.test(d)){
+         m=d.match(/^Açaí\s+(\d+)\s+300ml\s*:\s*(.+)$/i);
+         if(m)lines.push('• AÇAÍ '+m[1]+' : '+m[2].trim());
+         return;
+       }
+       if(/^Açaí\s+300ml\s*:/i.test(d)){
+         lines.push('• AÇAÍ : '+d.replace(/^Açaí\s+300ml\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^Pastel\s*:/i.test(d)){
+         lines.push('• PASTEL : '+d.replace(/^Pastel\s*:\s*/i,'').trim());
+         return;
+       }
+       if(/^🔥\s*LANCHE\s+ARTESANAL\s*:\s*SIM/i.test(d))return;
+
+       lines.push('• '+d.toUpperCase());
      });
-
-     const isCombo=comboQty>0||detalhes.some(d=>/^Combo\s+\d+\s*•/i.test(String(d||'')));
-     const qty=isCombo?comboQty:Math.max(1,Number(i.quantidade)||1);
-
-     /*
-      * Para combos, i.preco já é o valor total do combo com adicionais
-      * e com a quantidade escolhida. Não multiplicar novamente.
-      * Para produtos normais, preço x quantidade continua igual.
-      */
-     const itemTotal=isCombo
-       ? Number(i.preco)||0
-       : (Number(i.preco)||0)*qty;
-
-     lines.push(qty+'x '+waClean(i.nome)+' - '+money(itemTotal));
-
-     detalhes.forEach(detail=>addComboDetail(lines,detail));
-     lines.push('');
    });
 
-   lines.push('SUBTOTAL: '+money(sub));
-   lines.push('TAXA DE ENTREGA: '+money(f));
-   lines.push('TOTAL DO PEDIDO: '+money(total));
-   lines.push('PAGAMENTO: '+waClean(pagamento));
-
-   if(pagamento==='DINHEIRO'&&troco){
-     lines.push('TROCO PARA: '+money(Number(String(troco).replace(',','.'))||0));
-   }
-
-   if(obs)lines.push('OBSERVAÇÃO: '+waClean(obs));
-   lines.push('');
-   lines.push('ND BURGS');
+   lines.push('','SUBTOTAL: '+money(sub),'TAXA DE ENTREGA: '+money(f),'TOTAL DO PEDIDO: '+money(total),'PAGAMENTO: '+pagamento);
+   if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+money(Number(troco)));
+   if(obs)lines.push('OBSERVAÇÃO: '+obs);
+   lines.push('','ND BURGS');
 
    try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
-   try{
-     if(Array.isArray(window.carrinho))window.carrinho.length=0;
-     localStorage.removeItem('carrinho');
-     localStorage.removeItem('ndburgs_carrinho');
-   }catch(e){}
-
-   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));
-   try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){}
-   window.location.href=url;
+   try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
+   const url='https://wa.me/5511963973846?text='+encodeURIComponent(lines.join('\n'));try{if(typeof window.clearCart==='function')window.clearCart()}catch(e){};window.location.href=url;
  }
  window.nd17Finish=ndFinish;
  function keepOnlyBest(){
