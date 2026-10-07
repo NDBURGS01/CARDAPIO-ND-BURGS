@@ -5323,7 +5323,142 @@ window.finalizarPedidoModal=function(){
  lines.push('👤 *CLIENTE:* '+nome,'📱 *WHATSAPP:* '+telefone,'📦 *TIPO:* '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA'));
  if(tipo==='ENTREGA'){lines.push('📍 *ENDEREÇO:* '+rua+', Nº '+numero);if(complemento)lines.push('🏠 *COMPLEMENTO:* '+complemento)}
  lines.push('','🛒 *ITENS DO PEDIDO*','━━━━━━━━━━━━━━━━━━━━');
- cart().forEach(i=>{lines.push(`${i.quantidade}x ${i.nome} — ${money(i.preco*i.quantidade)}`);if(i.detalhes?.length)lines.push('   ↳ '+i.detalhes.join(', '));});
+
+window.formatarItemWhatsApp=function(i,lines){
+  const qty=Math.max(1,Number(i.quantidade)||1);
+  const total=(Number(i.preco)||0)*qty;
+  lines.push(`${qty}x ${i.nome} — ${money(total)}`);
+
+  const detalhes=Array.isArray(i.detalhes)?i.detalhes.filter(Boolean):[];
+  const grupos={};
+  let temCombo=false;
+
+  detalhes.forEach(d=>{
+    const m=String(d).match(/^Combo\s+(\d+)\s*•\s*(.+)$/i);
+    if(m){
+      temCombo=true;
+      const n=Number(m[1])||1;
+      (grupos[n]||(grupos[n]=[])).push(m[2].trim());
+    }
+  });
+
+  if(!temCombo){
+    if(detalhes.length) detalhes.forEach(d=>lines.push('• '+d));
+    return;
+  }
+
+  Object.keys(grupos).map(Number).sort((a,b)=>a-b).forEach(n=>{
+    const dados=grupos[n];
+    const secoes={
+      lanches:[],
+      adicionais:[],
+      molhos:[],
+      bebida:[],
+      pastel:[],
+      acai:[],
+      incluso:[]
+    };
+
+    dados.forEach(d=>{
+      let m;
+
+      if((m=d.match(/^Lanche\s+(\d+):\s*(.+)$/i))){
+        secoes.lanches.push(m[1]+'. '+m[2].trim());
+        return;
+      }
+
+      if((m=d.match(/^Lanche:\s*(.+)$/i))){
+        secoes.lanches.push(m[1].trim());
+        return;
+      }
+
+      if((m=d.match(/^Lanches Fixos:\s*(.+)$/i))){
+        m[1].split(/\s+•\s+/).filter(Boolean).forEach(x=>secoes.lanches.push(x.trim()));
+        return;
+      }
+
+      if((m=d.match(/^Adicional no Lanche\s+(\d+):\s*(.+)$/i))){
+        secoes.adicionais.push('Lanche '+m[1]+': '+m[2].trim());
+        return;
+      }
+
+      if((m=d.match(/^Adicional no lanche:\s*(.+)$/i))){
+        secoes.adicionais.push(m[1].trim());
+        return;
+      }
+
+      if((m=d.match(/^Molhos:\s*(.+)$/i))){
+        m[1].split(/\s+\+\s+/).filter(Boolean).forEach(x=>secoes.molhos.push(x.trim()));
+        return;
+      }
+
+      if((m=d.match(/^Refrigerante:\s*(.+)$/i))){
+        secoes.bebida.push(m[1].trim());
+        return;
+      }
+
+      if((m=d.match(/^Pastel:\s*(.+)$/i))){
+        secoes.pastel.push(m[1].trim());
+        return;
+      }
+
+      if((m=d.match(/^Açaí\s*300ml:\s*(.+)$/i))){
+        secoes.acai.push(m[1].trim());
+        return;
+      }
+
+      if((m=d.match(/^([^:]+):\s*(.+)$/))){
+        const titulo=m[1].trim().toUpperCase();
+        const valor=m[2].trim();
+
+        if(/ACOMPANHAMENTOS?\s+FIXOS?|ACOMPANHAMENTO/.test(titulo)){
+          valor.split(/\s+•\s+/).filter(Boolean).forEach(x=>secoes.incluso.push(x.trim()));
+        }else if(/SOBREMESA|BRINDE/.test(titulo)){
+          secoes.incluso.push(titulo.replace(/^(ESCOLHA\s+\d+\s*)?/,'')+': '+valor);
+        }else{
+          secoes.incluso.push(titulo+': '+valor);
+        }
+        return;
+      }
+
+      secoes.incluso.push(d);
+    });
+
+    lines.push('');
+    lines.push(`*COMBO ${n}*`);
+
+    if(secoes.lanches.length){
+      lines.push('*🍔 Lanches*');
+      secoes.lanches.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.adicionais.length){
+      lines.push('*🧀 Adicionais*');
+      secoes.adicionais.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.molhos.length){
+      lines.push('*🥫 Molhos*');
+      secoes.molhos.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.bebida.length){
+      lines.push('*🥤 Bebida*');
+      secoes.bebida.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.pastel.length){
+      lines.push('*🥟 Pastel*');
+      secoes.pastel.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.acai.length){
+      lines.push('*🍨 Açaí*');
+      secoes.acai.forEach(x=>lines.push('• '+x));
+    }
+    if(secoes.incluso.length){
+      lines.push('*📦 Incluso no combo*');
+      secoes.incluso.forEach(x=>lines.push('• '+x));
+    }
+  });
+};
+
+ cart().forEach(i=>{formatarItemWhatsApp(i,lines);});
  lines.push('','💰 *SUBTOTAL:* '+money(sub),'🛵 *TAXA:* '+money(fee),'💵 *TOTAL:* '+money(total),'💳 *PAGAMENTO:* '+pagamento);
  if(pagamento==='DINHEIRO'&&troco)lines.push('💵 *TROCO PARA:* '+money(Number(troco)));
  if(obs)lines.push('','📝 *OBSERVAÇÃO:* '+obs);
@@ -6471,12 +6606,7 @@ header .logo{display:none!important}
    const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+tel,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
    if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+aStreet+', Nº '+numero);if(comp)lines.push('COMPLEMENTO: '+comp)}
    lines.push('', 'ITENS DO PEDIDO');
-   cart().forEach(i=>{
-     const qty=Number(i.quantidade)||1;
-     const itemTotal=(Number(i.preco)||0)*qty;
-     lines.push(qty+'x '+i.nome+' - '+money(itemTotal));
-     if(Array.isArray(i.detalhes)&&i.detalhes.length) lines.push('  '+i.detalhes.join(', '));
-   });
+   cart().forEach(i=>{formatarItemWhatsApp(i,lines);});
    lines.push('','SUBTOTAL: '+money(sub),'TAXA DE ENTREGA: '+money(f),'TOTAL DO PEDIDO: '+money(total),'PAGAMENTO: '+pagamento);if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+money(Number(troco)));if(obs)lines.push('OBSERVAÇÃO: '+obs);lines.push('','ND BURGS');
    try{localStorage.setItem('ndburgs_ultimo_pedido',JSON.stringify(cart()))}catch(e){}
    try{if(Array.isArray(window.carrinho))window.carrinho.length=0;localStorage.removeItem('carrinho');localStorage.removeItem('ndburgs_carrinho')}catch(e){}
