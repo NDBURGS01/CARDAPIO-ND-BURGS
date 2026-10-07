@@ -11713,14 +11713,50 @@ else boot();
     const lines=['NOVO PEDIDO - ND BURGS','CLIENTE: '+nome,'WHATSAPP: '+telefone,'TIPO: '+(tipo==='ENTREGA'?'DELIVERY':'RETIRADA')];
     if(tipo==='ENTREGA'){lines.push('ENDEREÇO: '+endereco+', Nº '+numero);if(complemento)lines.push('COMPLEMENTO: '+complemento)}
     lines.push('','ITENS DO PEDIDO');
+
+    /*
+     * AGRUPAMENTO FINAL DOS ITENS:
+     * Se o cliente adicionar exatamente o mesmo combo mais de uma vez,
+     * ele deve aparecer como 2x / 3x / 4x em UMA única linha.
+     * Combos com escolhas diferentes continuam separados.
+     */
+    const grupos=[];
+    const mapa=new Map();
+
     c.forEach(item=>{
       const details=Array.isArray(item.detalhes)?item.detalhes:[];
       const qDetail=details.find(d=>/QUANTIDADE\s+DO\s+COMBO\s*:\s*X\d+/i.test(String(d||'')));
       const qm=qDetail&&String(qDetail).match(/QUANTIDADE\s+DO\s+COMBO\s*:\s*X(\d+)/i);
       const qty=qm?Math.max(1,Number(qm[1])||1):Math.max(1,Number(item.quantidade)||1);
-      const itemTotal=qm?(Number(item.preco)||0):(Number(item.preco)||0)*qty;
-      lines.push(qty+'x '+clean(item.nome)+' - '+moneyBR(itemTotal));
-      formatDetails(details,lines);
+
+      /*
+       * Para descobrir se dois combos são realmente iguais, ignoramos
+       * apenas o número da unidade (Combo 1, Combo 2...), mantendo todas
+       * as escolhas, adicionais, bebidas, molhos etc.
+       */
+      const assinaturaDetalhes=details
+        .filter(d=>!/^\s*[📦]?\s*QUANTIDADE\s+DO\s+COMBO\s*:/i.test(String(d||'')))
+        .map(d=>String(d||'').replace(/^\s*Combo\s+\d+\s*•\s*/i,'').trim().toUpperCase())
+        .filter(Boolean)
+        .join('\n');
+
+      const chave=clean(item.nome).toUpperCase()+'\n'+assinaturaDetalhes;
+      const valor=Number(item.preco)||0;
+      let grupo=mapa.get(chave);
+
+      if(!grupo){
+        grupo={nome:clean(item.nome),quantidade:0,total:0,detalhes:details};
+        mapa.set(chave,grupo);
+        grupos.push(grupo);
+      }
+
+      grupo.quantidade+=qty;
+      grupo.total+=valor;
+    });
+
+    grupos.forEach(grupo=>{
+      lines.push(grupo.quantidade+'x '+grupo.nome+' - '+moneyBR(grupo.total));
+      formatDetails(grupo.detalhes,lines);
     });
     lines.push('','SUBTOTAL: '+moneyBR(subtotal),'TAXA DE ENTREGA: '+moneyBR(taxa),'TOTAL DO PEDIDO: '+moneyBR(total),'PAGAMENTO: '+pagamento);
     if(pagamento==='DINHEIRO'&&troco)lines.push('TROCO PARA: '+moneyBR(Number(String(troco).replace(',','.'))||0));
