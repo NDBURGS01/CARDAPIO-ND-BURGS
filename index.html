@@ -9325,7 +9325,8 @@ if(document.readyState==='loading'){
 #enderecoAreaModal{display:none!important}
 #ndR20DeliveryHighlight{display:none!important}
 #ndUvaPromo{display:none!important}
-#ndFinalSendGate{display:none!important}
+#ndFinalSendGate:not(.show){display:none!important}
+#ndFinalSendGate.show{display:flex!important}
 
 /* Etapa 2 do checkout: endereço somente informativo, sem segunda seleção. */
 #ndV4SingleAddressSummary{margin-top:10px;padding:12px;border:1px solid rgba(75,147,255,.25);border-radius:12px;background:linear-gradient(145deg,#0d111a,#090a0f);color:#c7d0dd;font-size:11px;line-height:1.5}
