@@ -8842,6 +8842,12 @@ if(document.readyState==='loading'){
 
   let pendingOrder=null;
 
+  /* SUPABASE ND BURGS — use somente a chave PUBLICÁVEL/anon do projeto.
+     Nunca coloque a service_role/secret key no HTML público. */
+  const ND_SUPABASE_URL='https://pvvnjmbcznkiilfiomlo.supabase.co';
+  const ND_SUPABASE_PUBLIC_KEY='COLE_AQUI_SUA_CHAVE_PUBLICAVEL_OU_ANON';
+  const ND_SUPABASE_FUNCTION=ND_SUPABASE_URL+'/functions/v1/clever-api';
+
   function getCart(){
     if(!Array.isArray(window.carrinho)) window.carrinho=[];
     return window.carrinho;
@@ -9043,21 +9049,53 @@ if(document.readyState==='loading'){
       pendingOrder=null;
     };
 
-    $('#ndFinalOpenWhatsApp').onclick=()=>{
-      if(!pendingOrder)return;
-      const url='https://wa.me/5511963973846?text='+encodeURIComponent(pendingOrder.message);
-      let opened=null;
-      try{opened=window.open(url,'_blank','noopener,noreferrer')}catch(e){}
-      if(!opened){
-        try{
-          window.location.href=url;
-          return;
-        }catch(e){
-          alert('Não foi possível abrir o WhatsApp neste navegador.');
-          return;
-        }
+    $('#ndFinalOpenWhatsApp').onclick=async()=>{
+      if(!pendingOrder||pendingOrder.saving||pendingOrder.saved)return;
+      if(!ND_SUPABASE_PUBLIC_KEY||ND_SUPABASE_PUBLIC_KEY==='COLE_AQUI_SUA_CHAVE_PUBLICAVEL_OU_ANON'){
+        alert('Falta configurar a chave PUBLICÁVEL/anon do Supabase no HTML. Nenhum pedido foi enviado ao banco.');
+        return;
       }
-      $('#ndFinalSentState').style.display='block';
+      const btn=$('#ndFinalOpenWhatsApp');
+      const originalText=btn.textContent;
+      btn.disabled=true;
+      btn.textContent='SALVANDO PEDIDO...';
+      pendingOrder.saving=true;
+      let opened=null;
+      try{opened=window.open('about:blank','_blank');}catch(e){}
+      try{
+        const response=await fetch(ND_SUPABASE_FUNCTION,{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'apikey':ND_SUPABASE_PUBLIC_KEY,
+            'Authorization':'Bearer '+ND_SUPABASE_PUBLIC_KEY
+          },
+          body:JSON.stringify(pendingOrder.payload)
+        });
+        let result={};
+        try{result=await response.json()}catch(e){}
+        if(!response.ok||result.sucesso!==true){
+          if(opened)try{opened.close()}catch(e){}
+          const detalhe=result.erro||result.message||('HTTP '+response.status);
+          throw new Error(detalhe);
+        }
+        pendingOrder.saved=true;
+        pendingOrder.databaseId=result.pedido?.id||null;
+        pendingOrder.codigoPedido=result.pedido?.codigo_pedido||pendingOrder.payload.codigo_pedido;
+        const url='https://wa.me/5511963973846?text='+encodeURIComponent(pendingOrder.message);
+        if(opened){opened.location.href=url;}
+        else{window.location.href=url;}
+        const state=$('#ndFinalSentState');
+        if(state)state.textContent='Pedido salvo no banco. Agora envie a mensagem no WhatsApp e depois confirme aqui.';
+        if(state)state.style.display='block';
+      }catch(error){
+        if(opened)try{opened.close()}catch(e){}
+        alert('Não foi possível salvar o pedido no Supabase. O WhatsApp não foi aberto.\n\nDetalhe: '+(error?.message||'falha de conexão'));
+      }finally{
+        pendingOrder.saving=false;
+        btn.disabled=false;
+        btn.textContent=originalText;
+      }
     };
 
     $('#ndFinalConfirmSent').onclick=confirmSent;
@@ -9128,7 +9166,42 @@ if(document.readyState==='loading'){
 
     const replacement=function(){
       if(!validate())return;
-      pendingOrder={message:buildWhatsAppMessage()};
+      const c=getCart();
+      const nome=$('#nomeModal')?.value.trim()||'';
+      const telefone=$('#telefoneModal')?.value.trim()||'';
+      const data=addressData();
+      const complemento=$('#complementoModal')?.value.trim()||'';
+      const pagamento=$('#pagamentoModal')?.value||'';
+      const rawTroco=String($('#trocoModal')?.value||'').trim().replace(',','.');
+      const troco=Number(rawTroco)||0;
+      const observacao=$('#observacaoModal')?.value.trim()||'';
+      const sub=subtotal(c), taxa=fee(data), total=sub+taxa;
+      const codigo='ND-'+Date.now().toString(36).toUpperCase();
+      const itens=c.map(item=>({
+        nome:String(item.nome||''),
+        preco:Number(item.preco)||0,
+        quantidade:Math.max(1,Number(item.quantidade)||1),
+        detalhes:Array.isArray(item.detalhes)?item.detalhes.map(x=>String(x)):[]
+      }));
+      const payload={
+        codigo_pedido:codigo,
+        cliente_nome:nome,
+        cliente_telefone:telefone,
+        endereco:data.tipo==='ENTREGA'?data.rua:'',
+        numero:data.tipo==='ENTREGA'?data.numero:'',
+        complemento:data.tipo==='ENTREGA'?complemento:'',
+        bairro:null,
+        tipo_entrega:data.tipo,
+        forma_pagamento:pagamento,
+        troco_para:pagamento==='DINHEIRO'?troco:0,
+        itens,
+        subtotal:sub,
+        taxa_entrega:taxa,
+        desconto:0,
+        total,
+        observacoes:observacao
+      };
+      pendingOrder={message:buildWhatsAppMessage(),payload,saved:false,saving:false,codigoPedido:codigo};
       ensureSendGate();
       $('#ndFinalSendGate').classList.add('show');
     };
