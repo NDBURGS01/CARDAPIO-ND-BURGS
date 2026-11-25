@@ -377,7 +377,13 @@ header{padding:10px 16px 8px;background:rgba(4,4,4,.82);backdrop-filter:blur(18p
 .btn-whatsapp{background:linear-gradient(135deg,#25d366,#16b957);box-shadow:0 10px 28px rgba(37,211,102,.15)}.btn-finalizar-pedido,.btn-finalizar-modal{background:linear-gradient(135deg,#f5c400,#d9a900);color:#090909}.btn-continuar-comprando{background:rgba(255,255,255,.08);border:1px solid var(--line)}
 .instagram-destaque{border:1px solid rgba(245,196,0,.35);background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.015));box-shadow:var(--shadow)}
 /* address quick search */.address-search-wrap{margin:7px 0 9px}.address-search-wrap input{margin:0!important}.address-search-wrap small{display:block;color:#777;margin-top:5px;font-size:11px}
-/* Busca de ruas acessível: não seleciona endereço automaticamente */.address-search-wrap{position:relative;z-index:20}#rua,#ruaModal{display:none!important}.address-search-wrap input{width:100%;min-height:50px;padding:14px 15px!important;border:1px solid #777!important;border-radius:12px!important;background:#fff!important;color:#171717!important;font-size:16px!important;outline:none}.address-search-wrap input:focus{border-color:#f5c400!important;box-shadow:0 0 0 3px rgba(245,196,0,.18)}.address-search-wrap small{font-size:12px;color:#aaa;line-height:1.45}.address-suggestions{position:relative;z-index:10001;margin-top:6px;max-height:260px;overflow-y:auto;border:1px solid #f5c400;border-radius:12px;background:#171717;box-shadow:0 12px 28px rgba(0,0,0,.45)}.address-suggestions[hidden]{display:none!important}.address-suggestion{display:flex;width:100%;min-height:52px;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid #343434;background:#171717;color:#fff;text-align:left;font-size:14px;cursor:pointer}.address-suggestion:last-child{border-bottom:0}.address-suggestion:active,.address-suggestion:focus{background:#292929;outline:2px solid #f5c400;outline-offset:-2px}.address-suggestion strong{color:#f5c400;white-space:nowrap}.address-suggestion-empty{padding:14px;color:#ddd;font-size:13px;line-height:1.5}.address-help{display:inline-block;margin-top:8px;padding:8px 10px;border:1px solid #f5c400;border-radius:9px;color:#f5c400;text-decoration:none;font-weight:bold}.address-selected{margin-top:7px;color:#25d366;font-size:13px;font-weight:bold}
+/* Busca de ruas acessível: não seleciona endereço automaticamente */.address-search-wrap{position:relative;z-index:20}#rua,#ruaModal{display:none!important}.address-search-wrap input{width:100%;min-height:50px;padding:14px 15px!important;border:1px solid #777!important;border-radius:12px!important;background:#fff!important;color:#171717!important;font-size:16px!important;outline:none}.address-search-wrap input:focus{border-color:#f5c400!important;box-shadow:0 0 0 3px rgba(245,196,0,.18)}.address-search-wrap small{font-size:12px;color:#aaa;line-height:1.45}/* ND BURGS — confirmação gigante de endereço */
+.address-suggestions{position:fixed!important;z-index:100100!important;left:12px!important;right:12px!important;bottom:12px!important;top:auto!important;width:auto!important;max-width:760px;margin:0 auto!important;max-height:76vh!important;overflow-y:auto!important;border:2px solid #f5c400!important;border-radius:24px!important;background:linear-gradient(160deg,#202124,#090909)!important;box-shadow:0 0 0 9999px rgba(0,0,0,.78),0 20px 70px rgba(0,0,0,.8)!important;padding:14px!important}
+.address-suggestions:not([hidden])::before{content:"ESSE É SEU ENDEREÇO?\A BASTA CLICAR NA SUA RUA E DEPOIS COLOCAR A NUMERAÇÃO";display:block;white-space:pre-line;color:#f5c400;font-size:clamp(19px,4.7vw,30px);line-height:1.35;font-weight:1000;text-align:center;padding:12px 8px 16px;letter-spacing:.3px}
+.address-suggestion{display:flex!important;width:100%!important;min-height:68px!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:16px!important;border:1px solid #454545!important;border-radius:14px!important;margin:7px 0!important;background:#171717!important;color:#fff!important;text-align:left!important;font-size:clamp(16px,4vw,20px)!important;cursor:pointer!important}
+.address-suggestion strong{font-size:clamp(16px,4vw,20px)!important;color:#f5c400!important;white-space:nowrap!important}
+.address-suggestion:active,.address-suggestion:focus{background:#303030!important;outline:3px solid #f5c400!important;outline-offset:-3px!important}
+.address-suggestion-empty{padding:18px!important;color:#fff!important;font-size:16px!important;line-height:1.6!important;text-align:center!important}.address-suggestions[hidden]{display:none!important}.address-suggestion{display:flex;width:100%;min-height:52px;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid #343434;background:#171717;color:#fff;text-align:left;font-size:14px;cursor:pointer}.address-suggestion:last-child{border-bottom:0}.address-suggestion:active,.address-suggestion:focus{background:#292929;outline:2px solid #f5c400;outline-offset:-2px}.address-suggestion strong{color:#f5c400;white-space:nowrap}.address-suggestion-empty{padding:14px;color:#ddd;font-size:13px;line-height:1.5}.address-help{display:inline-block;margin-top:8px;padding:8px 10px;border:1px solid #f5c400;border-radius:9px;color:#f5c400;text-decoration:none;font-weight:bold}.address-selected{margin-top:7px;color:#25d366;font-size:13px;font-weight:bold}
 /* suggestion sheet */.suggestions-modal{position:fixed;inset:0;z-index:100006;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.76);backdrop-filter:blur(8px)}.suggestions-modal.show{display:flex}.suggestions-panel{width:100%;max-width:760px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#18191c,#0d0e10);border:1px solid rgba(245,196,0,.45);border-bottom:0;border-radius:24px 24px 0 0;padding:18px;box-shadow:0 -25px 80px rgba(0,0,0,.7)}.suggestions-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.suggestions-head h2{margin:0;border:0;padding:0;color:#fff}.suggestions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.suggestion-card{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.035)}.suggestion-card img{width:70px;height:70px;object-fit:contain;border-radius:10px;background:#090a0b}.suggestion-card strong{display:block;font-size:13px}.suggestion-card span{display:block;color:var(--gold2);font-weight:900;font-size:13px;margin:4px 0}.suggestion-card button{border:0;background:var(--gold);color:#000;border-radius:9px;padding:7px 10px;font-weight:900;cursor:pointer}.suggestions-close{border:0;background:#2a2b2f;color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px}
 .no-results{display:none;text-align:center;padding:35px 15px;color:#999;border:1px dashed #333;border-radius:16px;margin-top:12px}.produto.search-hidden{display:none!important}
 @media(max-width:600px){.modern-search{top:57px}.categoria-menu{top:116px}.produtos{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.produto{padding:8px;border-radius:15px}.produto-imagem{height:135px}.produto h3{font-size:13px}.produto p{font-size:10px;min-height:40px}.preco{font-size:16px}.btn{font-size:11px}.container{padding-left:9px;padding-right:9px}.suggestions-grid{grid-template-columns:1fr}.suggestion-card img{width:62px;height:62px}}
@@ -4970,7 +4976,7 @@ verificarHorario();
         const nome=document.createElement('span');nome.textContent=op.value;
         const taxa=document.createElement('strong');taxa.textContent=moeda(Number((op.textContent.split('—').pop()||'').replace(/[^0-9,]/g,'').replace(',','.'))||Number(taxas[op.value]||0));
         botao.appendChild(nome);botao.appendChild(taxa);
-        botao.addEventListener('click',()=>{select.value=op.value;input.value=op.value;fechar();select.dispatchEvent(new Event('change',{bubbles:true}));});
+        botao.addEventListener('click',()=>{select.value=op.value;input.value=op.value;fechar();select.dispatchEvent(new Event('change',{bubbles:true}));const numeroId=selectId==='ruaModal'?'numeroModal':'numero';const numero=document.getElementById(numeroId);if(numero){numero.focus({preventScroll:false});numero.scrollIntoView({behavior:'smooth',block:'center'});}});
         lista.appendChild(botao);
       });
       lista.hidden=false;
@@ -9400,7 +9406,7 @@ if(document.readyState==='loading'){
 .nd26-mode{border:1px solid rgba(255,255,255,.1);background:#0d1018;color:#d8deea;border-radius:12px;padding:10px 13px;min-height:44px;font-weight:900;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:.18s ease}
 .nd26-mode.active{border-color:#4b93ff;background:linear-gradient(135deg,#163a79,#101b31);color:#fff;box-shadow:0 0 18px rgba(58,132,255,.2),inset 0 1px 0 rgba(255,255,255,.12)}
 .nd26-complement-wrap{grid-column:1 / -1}
-.nd26-fields{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:8px;margin-top:10px}
+.nd26-fields{position:relative;display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}.nd26-step{padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(0,0,0,.18)}.nd26-step-label{display:flex;align-items:center;gap:8px;margin:0 0 7px;color:#eaf1ff;font-size:12px;font-weight:900}.nd26-step-label span{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#1c4c99;color:#fff;font-size:11px}.nd26-step-hint{margin-top:6px;color:#aab4c5;font-size:11px;line-height:1.4}.nd26-step-hidden{display:none!important}.nd26-fee-preview{display:none;margin-top:7px;padding:8px 10px;border-radius:9px;background:rgba(26,115,60,.17);border:1px solid rgba(73,201,123,.35);color:#baf5ce;font-size:12px;font-weight:900}.nd26-fee-preview.show{display:block}
 .nd26-field-wrap{position:relative}
 .nd26-input{width:100%;margin:0!important;min-height:46px;padding:12px 13px!important;background:#070a10!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:12px!important;color:#fff!important;outline:none!important;font-size:14px!important}
 .nd26-input:focus{border-color:#4b93ff!important;box-shadow:0 0 0 3px rgba(75,147,255,.11)!important}
@@ -9468,7 +9474,7 @@ if(document.readyState==='loading'){
 @media(max-width:720px){
  #nd26-top{} 
  .nd26-top-inner{grid-template-columns:1fr}
- .nd26-fields{grid-template-columns:1fr 100px}
+ .nd26-fields{grid-template-columns:1fr}
  .nd26-save{grid-column:1/-1}
  .nd26-offer-card{grid-template-columns:82px 1fr}
  .nd26-offer-img{width:82px;height:82px}
@@ -9517,7 +9523,7 @@ function renderStreetList(input,list){
  list.classList.toggle('show',true);
  $$('.nd26-option',list).forEach(()=>{});
  list.querySelectorAll('.nd26-option').forEach(el=>el.addEventListener('click',()=>{
-   input.value=el.dataset.street;input.dataset.valid='1';list.classList.remove('show');
+   input.value=el.dataset.street;input.dataset.valid='1';list.classList.remove('show');if(input.id==='ndTopStreet'){setStreetStep(true);setTimeout(()=>number.focus(),80)}
  }));
 }
 function buildTopAddress(){
@@ -9537,14 +9543,14 @@ function buildTopAddress(){
    <button type="button" class="nd26-mode" id="nd26PickupMode">🏪 RETIRADA NA LOJA</button>
   </div>
   <div class="nd26-fields" id="nd26DeliveryFields">
-   <div class="nd26-field-wrap"><input id="ndTopStreet" class="nd26-input" type="search" autocomplete="off" placeholder="🔎 Digite sua rua" aria-label="Rua"><div id="ndTopStreetList" class="nd26-list"></div></div>
-   <input id="ndTopNumber" class="nd26-input" type="text" inputmode="numeric" placeholder="Número" aria-label="Número">
-   <div class="nd26-complement-wrap">
+   <div class="nd26-step" id="nd26StepStreet"><div class="nd26-step-label"><span>1</span> Escolha sua rua</div><div class="nd26-field-wrap"><input id="ndTopStreet" class="nd26-input" type="search" autocomplete="off" placeholder="🔎 Comece digitando o nome da rua" aria-label="Rua"><div id="ndTopStreetList" class="nd26-list"></div></div><div class="nd26-step-hint">Toque na rua correta da lista. A taxa aparece antes de continuar.</div><div id="nd26FeePreview" class="nd26-fee-preview"></div></div>
+   <div class="nd26-step nd26-step-hidden" id="nd26StepNumber"><div class="nd26-step-label"><span>2</span> Informe o número</div><input id="ndTopNumber" class="nd26-input" type="text" inputmode="numeric" placeholder="Número da casa ou prédio" aria-label="Número"><div class="nd26-step-hint">Digite somente o número do imóvel.</div></div>
+   <div class="nd26-complement-wrap nd26-step nd26-step-hidden" id="nd26StepComplement"><div class="nd26-step-label"><span>3</span> Complemento (opcional)</div>
     <div class="nd-complement-highlight"><span class="nd-complement-title">📍 COMPLEMENTO DO ENDEREÇO</span><span class="nd-complement-help">Ajude o entregador a encontrar você: apartamento, bloco, casa dos fundos, condomínio ou referência.</span><span class="nd-complement-example">Ex.: Apto 12, Bloco B, portão preto</span></div>
     <input id="ndTopComplement" class="nd26-input nd-complement-input" type="text" autocomplete="address-line2" placeholder="Ex.: Apto 12, Bloco B, casa dos fundos..." aria-label="Complemento do endereço">
     <div class="nd-complement-inline"><strong>Não tem complemento?</strong> Pode deixar em branco.</div>
    </div>
-   <button type="button" class="nd26-save" id="nd26SaveAddress">SALVAR ENDEREÇO</button>
+   <button type="button" class="nd26-save nd26-step-hidden" id="nd26SaveAddress">CONFIRMAR ENDEREÇO E VER TAXA</button>
   </div>
   <div class="nd26-pickup-note" id="nd26PickupNote">🏪 <strong>Retirada selecionada.</strong> Sem taxa de entrega. Seu endereço não será solicitado.</div>
   <div class="nd26-status"><span id="nd26CurrentStatus">Nenhum endereço selecionado.</span><button type="button" id="nd26ClearAddress">TROCAR</button></div>`;
@@ -9553,15 +9559,23 @@ function buildTopAddress(){
  function setMode(type){
    const delivery=type==='ENTREGA';del.classList.toggle('active',delivery);pick.classList.toggle('active',!delivery);fields.style.display=delivery?'grid':'none';note.classList.toggle('show',!delivery);
  }
+ function setStreetStep(selected){
+   $('#nd26StepNumber')?.classList.toggle('nd26-step-hidden',!selected);
+   $('#nd26StepComplement')?.classList.toggle('nd26-step-hidden',!selected);
+   $('#nd26SaveAddress')?.classList.toggle('nd26-step-hidden',!selected);
+   const feeBox=$('#nd26FeePreview');
+   if(feeBox){feeBox.classList.toggle('show',!!selected);feeBox.textContent=selected?'✓ Taxa de entrega para esta rua: '+money(taxes()[street.value]||0):'';}
+ }
+
  function updateStatus(){const a=getAddr();$('#nd26CurrentStatus').innerHTML=a.type==='RETIRADA'?'<strong>🏪 Retirada na loja</strong>':'<strong>'+ (a.street||'Nenhum endereço selecionado') + (a.number?', Nº '+a.number:'') + '</strong>'+(a.complemento?'<br><span>📍 '+esc(a.complemento)+'</span>':'')+'<br><span>Taxa: '+money(taxes()[a.street]||0)+'</span>'}
  del.onclick=()=>{setMode('ENTREGA');street.focus()};
  pick.onclick=()=>{saveAddr('RETIRADA','','');syncCheckoutAddr();setMode('RETIRADA');updateStatus();addressSummary();};
- street.addEventListener('input',()=>{street.dataset.valid='';renderStreetList(street,list)});
+ street.addEventListener('input',()=>{street.dataset.valid='';setStreetStep(false);renderStreetList(street,list)});
  street.addEventListener('focus',()=>renderStreetList(street,list));
  document.addEventListener('click',e=>{if(!d.contains(e.target))list.classList.remove('show')});
- $('#nd26SaveAddress').onclick=()=>{const s=streets().find(x=>norm(x)===norm(street.value));if(!s)return alert('Selecione uma rua da lista.');if(!number.value.trim())return alert('Digite o número do endereço.');const comp=($('#ndTopComplement')?.value||'').trim();saveAddr('ENTREGA',s,number.value.trim(),comp);syncCheckoutAddr();updateStatus();addressSummary();street.value=s;};
+ $('#nd26SaveAddress').onclick=()=>{const s=streets().find(x=>norm(x)===norm(street.value));if(!s||street.dataset.valid!=='1')return alert('Toque na rua correta da lista de sugestões.');if(!number.value.trim()){alert('Digite o número do endereço.');number.focus();return;}const comp=($('#ndTopComplement')?.value||'').trim();saveAddr('ENTREGA',s,number.value.trim(),comp);syncCheckoutAddr();updateStatus();addressSummary();street.value=s;street.dataset.valid='1';$('#nd26CurrentStatus').scrollIntoView({behavior:'smooth',block:'nearest'});};
  $('#nd26ClearAddress').onclick=()=>street.focus();
- const a=getAddr();street.value=a.street||'';number.value=a.number||'';if($('#ndTopComplement'))$('#ndTopComplement').value=a.complemento||'';setMode(a.type==='RETIRADA'?'RETIRADA':'ENTREGA');updateStatus();
+ const a=getAddr();street.value=a.street||'';number.value=a.number||'';if($('#ndTopComplement'))$('#ndTopComplement').value=a.complemento||'';street.dataset.valid=a.street?'1':'';setStreetStep(!!a.street);setMode(a.type==='RETIRADA'?'RETIRADA':'ENTREGA');updateStatus();
 }
 
 function hideLegacyAddressGate(){
