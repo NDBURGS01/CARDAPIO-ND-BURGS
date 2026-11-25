@@ -377,6 +377,7 @@ header{padding:10px 16px 8px;background:rgba(4,4,4,.82);backdrop-filter:blur(18p
 .btn-whatsapp{background:linear-gradient(135deg,#25d366,#16b957);box-shadow:0 10px 28px rgba(37,211,102,.15)}.btn-finalizar-pedido,.btn-finalizar-modal{background:linear-gradient(135deg,#f5c400,#d9a900);color:#090909}.btn-continuar-comprando{background:rgba(255,255,255,.08);border:1px solid var(--line)}
 .instagram-destaque{border:1px solid rgba(245,196,0,.35);background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.015));box-shadow:var(--shadow)}
 /* address quick search */.address-search-wrap{margin:7px 0 9px}.address-search-wrap input{margin:0!important}.address-search-wrap small{display:block;color:#777;margin-top:5px;font-size:11px}
+/* Busca de ruas acessível: não seleciona endereço automaticamente */.address-search-wrap{position:relative;z-index:20}#rua,#ruaModal{display:none!important}.address-search-wrap input{width:100%;min-height:50px;padding:14px 15px!important;border:1px solid #777!important;border-radius:12px!important;background:#fff!important;color:#171717!important;font-size:16px!important;outline:none}.address-search-wrap input:focus{border-color:#f5c400!important;box-shadow:0 0 0 3px rgba(245,196,0,.18)}.address-search-wrap small{font-size:12px;color:#aaa;line-height:1.45}.address-suggestions{position:relative;z-index:10001;margin-top:6px;max-height:260px;overflow-y:auto;border:1px solid #f5c400;border-radius:12px;background:#171717;box-shadow:0 12px 28px rgba(0,0,0,.45)}.address-suggestions[hidden]{display:none!important}.address-suggestion{display:flex;width:100%;min-height:52px;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid #343434;background:#171717;color:#fff;text-align:left;font-size:14px;cursor:pointer}.address-suggestion:last-child{border-bottom:0}.address-suggestion:active,.address-suggestion:focus{background:#292929;outline:2px solid #f5c400;outline-offset:-2px}.address-suggestion strong{color:#f5c400;white-space:nowrap}.address-suggestion-empty{padding:14px;color:#ddd;font-size:13px;line-height:1.5}.address-help{display:inline-block;margin-top:8px;padding:8px 10px;border:1px solid #f5c400;border-radius:9px;color:#f5c400;text-decoration:none;font-weight:bold}.address-selected{margin-top:7px;color:#25d366;font-size:13px;font-weight:bold}
 /* suggestion sheet */.suggestions-modal{position:fixed;inset:0;z-index:100006;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.76);backdrop-filter:blur(8px)}.suggestions-modal.show{display:flex}.suggestions-panel{width:100%;max-width:760px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#18191c,#0d0e10);border:1px solid rgba(245,196,0,.45);border-bottom:0;border-radius:24px 24px 0 0;padding:18px;box-shadow:0 -25px 80px rgba(0,0,0,.7)}.suggestions-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.suggestions-head h2{margin:0;border:0;padding:0;color:#fff}.suggestions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.suggestion-card{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.035)}.suggestion-card img{width:70px;height:70px;object-fit:contain;border-radius:10px;background:#090a0b}.suggestion-card strong{display:block;font-size:13px}.suggestion-card span{display:block;color:var(--gold2);font-weight:900;font-size:13px;margin:4px 0}.suggestion-card button{border:0;background:var(--gold);color:#000;border-radius:9px;padding:7px 10px;font-weight:900;cursor:pointer}.suggestions-close{border:0;background:#2a2b2f;color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px}
 .no-results{display:none;text-align:center;padding:35px 15px;color:#999;border:1px dashed #333;border-radius:16px;margin-top:12px}.produto.search-hidden{display:none!important}
 @media(max-width:600px){.modern-search{top:57px}.categoria-menu{top:116px}.produtos{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.produto{padding:8px;border-radius:15px}.produto-imagem{height:135px}.produto h3{font-size:13px}.produto p{font-size:10px;min-height:40px}.preco{font-size:16px}.btn{font-size:11px}.container{padding-left:9px;padding-right:9px}.suggestions-grid{grid-template-columns:1fr}.suggestion-card img{width:62px;height:62px}}
@@ -1626,7 +1627,7 @@ ESCOLHER SABOR
 <div id="enderecoArea">
 
 <label>Rua</label>
-<div class="address-search-wrap"><input id="ruaBusca" type="search" autocomplete="off" placeholder="🔎 Pesquisar sua rua"><small>Digite parte do nome para encontrar mais rápido.</small></div>
+<div class="address-search-wrap"><input id="ruaBusca" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar rua para entrega" placeholder="Digite o nome da rua…"><small>Digite 2 ou mais letras e toque na rua correta.</small><div id="ruaSugestoes" class="address-suggestions" role="listbox" aria-label="Sugestões de ruas" hidden></div></div>
 <select id="rua" onchange="calcularTaxa()">
 
 <option value="">
@@ -4944,23 +4945,44 @@ verificarHorario();
   }
   q?.addEventListener('input',filtrar);
 
-  function configurarBuscaRua(inputId,selectId){
-    const input=document.getElementById(inputId), select=document.getElementById(selectId);
-    if(!input||!select)return;
-    input.addEventListener('input',()=>{
-      const termo=input.value.trim().toLocaleLowerCase('pt-BR');
-      Array.from(select.options).forEach((op,i)=>{
-        if(i===0){op.hidden=false;return;}
-        op.hidden=!!termo&&!op.textContent.toLocaleLowerCase('pt-BR').includes(termo);
-      });
-      const primeira=Array.from(select.options).find((op,i)=>i>0&&!op.hidden);
-      if(termo&&primeira&&(!select.value||select.options[select.selectedIndex]?.hidden)){
-        select.value=primeira.value; select.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    });
+  function normalizarBuscaRua(valor){
+    return (valor||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   }
-  configurarBuscaRua('ruaBusca','rua');
-  configurarBuscaRua('ruaBuscaModal','ruaModal');
+  function configurarBuscaRua(inputId,selectId,sugestoesId){
+    const input=document.getElementById(inputId), select=document.getElementById(selectId), lista=document.getElementById(sugestoesId);
+    if(!input||!select||!lista)return;
+    function fechar(){lista.hidden=true;lista.innerHTML='';}
+    function mostrar(){
+      const termo=normalizarBuscaRua(input.value);
+      // Sempre exigir seleção explícita: digitar não define a rua nem a taxa.
+      if(select.value){select.value='';select.dispatchEvent(new Event('change',{bubbles:true}));}
+      if(termo.length<2){fechar();return;}
+      const opcoes=Array.from(select.options).filter(op=>op.value && normalizarBuscaRua(op.value).includes(termo));
+      lista.innerHTML='';
+      if(!opcoes.length){
+        const vazio=document.createElement('div');vazio.className='address-suggestion-empty';
+        vazio.textContent='Não encontramos essa rua na lista. Confira o nome ou fale com a ND BURGS para confirmar a taxa.';
+        const ajuda=document.createElement('a');ajuda.className='address-help';ajuda.href='https://wa.me/5511963973846?text='+encodeURIComponent('Olá! Não encontrei minha rua na lista de entrega da ND BURGS. Podem me ajudar a confirmar o endereço e a taxa?');ajuda.target='_blank';ajuda.rel='noopener noreferrer';ajuda.textContent='Pedir ajuda pelo WhatsApp';
+        vazio.appendChild(document.createElement('br'));vazio.appendChild(ajuda);lista.appendChild(vazio);lista.hidden=false;return;
+      }
+      opcoes.slice(0,12).forEach(op=>{
+        const botao=document.createElement('button');botao.type='button';botao.className='address-suggestion';botao.setAttribute('role','option');
+        const nome=document.createElement('span');nome.textContent=op.value;
+        const taxa=document.createElement('strong');taxa.textContent=moeda(Number((op.textContent.split('—').pop()||'').replace(/[^0-9,]/g,'').replace(',','.'))||Number(taxas[op.value]||0));
+        botao.appendChild(nome);botao.appendChild(taxa);
+        botao.addEventListener('click',()=>{select.value=op.value;input.value=op.value;fechar();select.dispatchEvent(new Event('change',{bubbles:true}));});
+        lista.appendChild(botao);
+      });
+      lista.hidden=false;
+    }
+    input.addEventListener('input',mostrar);
+    input.addEventListener('focus',()=>{if(input.value.trim().length>=2&&!select.value)mostrar();});
+    input.addEventListener('keydown',e=>{if(e.key==='Escape')fechar();if(e.key==='Enter'&&!lista.hidden){const primeiro=lista.querySelector('button.address-suggestion');if(primeiro){e.preventDefault();primeiro.click();}}});
+    document.addEventListener('click',e=>{if(!lista.contains(e.target)&&e.target!==input)fechar();});
+    select.addEventListener('change',()=>{if(select.value){input.value=select.value;fechar();}});
+  }
+  configurarBuscaRua('ruaBusca','rua','ruaSugestoes');
+  configurarBuscaRua('ruaBuscaModal','ruaModal','ruaSugestoesModal');
 
   window.fecharSugestoes=function(event){
     if(event&&event.target&&event.target.id!=='suggestionsModal')return;
@@ -5279,7 +5301,7 @@ function buildCheckout(){
     <select id="tipoPedidoModal" style="display:none"><option value="ENTREGA">ENTREGA</option><option value="RETIRADA">RETIRADA</option></select>
     <div id="enderecoAreaModal">
       <label>Pesquise sua rua</label>
-      <input id="ruaBuscaModal" type="search" autocomplete="off" placeholder="🔎 Digite o nome da rua">
+      <div class="address-search-wrap"><input id="ruaBuscaModal" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar rua para entrega" placeholder="Digite o nome da rua…"><small>Digite 2 ou mais letras e toque na rua correta.</small><div id="ruaSugestoesModal" class="address-suggestions" role="listbox" aria-label="Sugestões de ruas" hidden></div></div>
       <select id="ruaModal" onchange="calcularTaxaModal()"><option value="">Selecione sua rua</option></select>
       <label>Número</label><input id="numeroModal" type="text" placeholder="Número">
       <div class="nd-complement-highlight">
