@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b0a"><title>ND BURGS · Gestão</title>
+  <link rel="stylesheet" href="./assets/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main id="loginView" class="login-wrap">
+    <section class="login-card">
+      <div class="brand-mark">ND<span>·</span></div>
+      <p class="eyebrow">CENTRAL DE OPERAÇÕES</p><h1>ND BURGS <em>GESTÃO</em></h1>
+      <p class="muted">Acesso seguro da equipe</p>
+      <form id="loginForm">
+        <label>E-MAIL<input id="email" type="email" autocomplete="username" required placeholder="seu e-mail"></label>
+        <label>SENHA<input id="password" type="password" autocomplete="current-password" required placeholder="sua senha"></label>
+        <button class="primary full" type="submit">ENTRAR NO PAINEL</button>
+        <p id="loginError" class="error"></p>
+      </form>
+      <small>O acesso é liberado conforme o perfil cadastrado pelo administrador.</small>
+    </section>
+  </main>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="brand-mark small">ND<span>·</span></div><div><b>ND BURGS</b><small>GESTÃO</small></div></div>
+      <div class="profile"><span class="avatar">ND</span><div><b id="userName">Equipe</b><small id="userRole">PERFIL</small></div></div>
+      <nav id="nav">
+        <button data-page="dashboard" class="nav-item active">◫ <span>VISÃO GERAL</span></button>
+        <button data-page="orders" class="nav-item">▤ <span>PEDIDOS</span><i id="ordersCount">0</i></button>
+        <button data-page="routes" class="nav-item">⌁ <span>ROTAS</span></button>
+        <button data-page="drivers" class="nav-item">◎ <span>MOTOBOYS</span></button>
+        <button data-page="stock" class="nav-item">▦ <span>ESTOQUE</span></button>
+        <button data-page="finance" class="nav-item" data-roles="admin">▥ <span>FINANCEIRO</span></button>
+        <button data-page="fees" class="nav-item" data-roles="admin,attendant">⌖ <span>TAXAS</span></button>
+        <button data-page="reports" class="nav-item" data-roles="admin">▧ <span>RELATÓRIOS</span></button>
+        <button data-page="settings" class="nav-item" data-roles="admin">⚙ <span>CONFIGURAÇÕES</span></button>
+      </nav>
+      <button id="logoutBtn" class="logout">SAIR DA CONTA ↗</button>
+    </aside>
+    <main class="main">
+      <header class="topbar"><button id="menuToggle" class="icon-btn" aria-label="Abrir menu">☰</button><div><p class="eyebrow">OPERAÇÃO ND BURGS</p><h2 id="pageTitle">VISÃO GERAL</h2></div><div class="top-actions"><span class="live-dot"></span><span class="muted">CONECTADO</span><button id="refreshBtn" class="icon-btn" title="Atualizar">↻</button></div></header>
+      <section id="pageContent" class="content"></section>
+      <div id="toast" class="toast"></div>
+    </main>
+  </div>
+  <script src="./assets/app.js"></script>
+</body></html>
