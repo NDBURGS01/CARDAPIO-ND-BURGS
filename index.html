@@ -1,13 +1,13 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão + proteção contra layout antigo no primeiro paint -->
-<meta name="nd-site-version" content="20261128-R48">
+<meta name="nd-site-version" content="20261128-R49">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20261128-R48";
+  const ND_SITE_VERSION = "20261128-R49";
   const KEY = "ndburgs_site_version";
   const RESET_KEY = "ndburgs_cache_reset_20261128_R48";
   document.documentElement.classList.add("nd-booting");
@@ -57,12 +57,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ND BURGS">
-<link rel="manifest" href="./manifest.json?v=20261128-R48">
-<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R48">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R48">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R48">
-<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R48">
-<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R48">
+<link rel="manifest" href="./manifest.json?v=20261128-R49">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R49">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R49">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R49">
+<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R49">
+<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R49">
 
 <title>ND BURGS | Faça seu pedido</title>
 
@@ -4454,8 +4454,26 @@ Number(taxas[rua])
 
 }
 
+const ndgCode=(document.getElementById("ndgCouponInput")?.value||"").trim().toUpperCase();
+let ndgDiscount=0, ndgCouponPct=0;
+if(ndgCode){
+  try{
+    const ndgEarned=JSON.parse(localStorage.getItem("ndg_coupons_v1")||"[]");
+    const ndgValid=ndgEarned.find(c=>String(c.code||"").toUpperCase()===ndgCode);
+    if(ndgValid){
+      ndgCouponPct=Number(ndgValid.pct)||0;
+      ndgDiscount=Math.min(subtotal,subtotal*ndgCouponPct/100);
+    }else{
+      alert("Cupom não encontrado neste navegador. Jogue BURGS RUN 3D e use um cupom conquistado.");
+      return;
+    }
+  }catch(e){
+    alert("Não foi possível validar o cupom neste navegador.");
+    return;
+  }
+}
 const total=
-subtotal+taxa;
+subtotal-ndgDiscount+taxa;
 
 mensagem+=
 "%0A";
@@ -4473,6 +4491,10 @@ encodeURIComponent(
 moeda(taxa)
 )+
 "%0A";
+
+if(ndgDiscount>0){
+ mensagem+="🎟️ *CUPOM "+encodeURIComponent(ndgCode)+" ("+ndgCouponPct+"%):* -"+encodeURIComponent(moeda(ndgDiscount))+"%0A";
+}
 
 mensagem+=
 "💵 *TOTAL:* "+
@@ -11783,7 +11805,7 @@ if('serviceWorker' in navigator){
         return;
       }
     }catch(_){}
-    navigator.serviceWorker.register('./sw.js?v=20261128-R48',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
+    navigator.serviceWorker.register('./sw.js?v=20261128-R49',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
   },{once:true});
 }
 
@@ -12283,5 +12305,173 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<style id="nd-game-coupons-style">
+#ndGameCoupons{display:none;margin:22px 0 28px;scroll-margin-top:115px;color:#fff}
+#ndGameCoupons.nd-game-open{display:block}
+#ndGameCoupons .ndg-shell{position:relative;overflow:hidden;border:1px solid #3a2527;border-radius:24px;background:radial-gradient(ellipse at 50% -10%,#542018 0,#171013 42%,#08090c 100%);box-shadow:0 22px 65px #000a}
+#ndGameCoupons .ndg-hero{padding:22px 18px 14px;text-align:center}
+#ndGameCoupons .ndg-kicker{font-size:10px;font-weight:1000;letter-spacing:3px;color:#ffb000}
+#ndGameCoupons .ndg-title{font-size:clamp(28px,5vw,48px);line-height:1;margin:10px 0;background:linear-gradient(#fff 15%,#ffb000 70%,#ff4d00);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:1000;letter-spacing:-1.5px}
+#ndGameCoupons .ndg-sub{max-width:650px;margin:0 auto;color:#bcbcc4;font-size:13px;line-height:1.55}
+#ndGameCoupons .ndg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 14px}
+#ndGameCoupons .ndg-stat{padding:10px 5px;border:1px solid #ffffff13;border-radius:13px;text-align:center;background:#ffffff08}
+#ndGameCoupons .ndg-stat span{display:block;font-size:9px;letter-spacing:1px;color:#999;font-weight:900}
+#ndGameCoupons .ndg-stat strong{display:block;font-size:20px;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
+#ndGameCoupons .ndg-stage{position:relative;margin:0 12px;border:1px solid #ffffff1c;border-radius:18px;overflow:hidden;background:#080a12;box-shadow:inset 0 0 40px #000}
+#ndGameCoupons canvas{display:block;width:100%;height:clamp(280px,55vw,430px);touch-action:pan-y}
+#ndGameCoupons .ndg-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;background:linear-gradient(#05060a44,#05060ad9);backdrop-filter:blur(2px)}
+#ndGameCoupons .ndg-overlay[hidden]{display:none}
+#ndGameCoupons .ndg-overlay-card{max-width:390px}
+#ndGameCoupons .ndg-overlay h3{font-size:clamp(23px,4vw,34px);font-weight:1000;margin-bottom:8px;text-shadow:0 3px 20px #000}
+#ndGameCoupons .ndg-overlay p{color:#e0e0e5;font-size:13px;line-height:1.5;margin-bottom:15px}
+#ndGameCoupons .ndg-primary{border:0;border-radius:12px;padding:14px 20px;background:linear-gradient(135deg,#ff4d00,#ffb000);color:#fff;font-weight:1000;cursor:pointer;box-shadow:0 8px 25px #ff4d0044}
+#ndGameCoupons .ndg-controls{display:flex;justify-content:center;gap:10px;padding:12px 12px 4px}
+#ndGameCoupons .ndg-control{width:64px;height:48px;border:1px solid #ffffff22;border-radius:13px;background:#ffffff0b;color:#fff;font-size:22px;font-weight:900;touch-action:manipulation}
+#ndGameCoupons .ndg-meta{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#ndGameCoupons .ndg-panel{border:1px solid #ffffff12;border-radius:15px;padding:13px;background:#ffffff06}
+#ndGameCoupons .ndg-panel h4{font-size:12px;letter-spacing:.8px;margin-bottom:9px;color:#ffb000}
+#ndGameCoupons .ndg-panel p{font-size:11px;color:#aaa;line-height:1.5}
+#ndGameCoupons .ndg-skins{display:flex;gap:7px;flex-wrap:wrap}
+#ndGameCoupons .ndg-skin{flex:1;min-width:78px;padding:9px 6px;border:1px solid #333;border-radius:11px;background:#101014;color:#aaa;font-size:10px;font-weight:900;cursor:pointer}
+#ndGameCoupons .ndg-skin.selected{border-color:#ff4d00;color:#fff;background:#32140e;box-shadow:inset 0 0 0 1px #ff4d0033}
+#ndGameCoupons .ndg-skin:disabled{opacity:.35;cursor:not-allowed}
+#ndGameCoupons .ndg-rewards{display:grid;gap:7px}
+#ndGameCoupons .ndg-reward{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border:1px solid #ffffff12;border-radius:10px;background:#0c0c0f;font-size:11px}
+#ndGameCoupons .ndg-reward strong{color:#ffb000}
+#ndGameCoupons .ndg-coupon-result{display:none;margin:0 14px 14px;padding:14px;border:1px solid #ffb000;border-radius:15px;background:linear-gradient(135deg,#241408,#121014);text-align:center}
+#ndGameCoupons .ndg-coupon-result.show{display:block}
+#ndGameCoupons .ndg-coupon-result strong{display:block;color:#ffcf43;font-size:25px;letter-spacing:2px;margin:7px}
+#ndGameCoupons .ndg-small{font-size:10px;color:#999;line-height:1.5}
+#ndGameCoupons .ndg-note{padding:0 14px 16px;color:#777;font-size:10px;line-height:1.5;text-align:center}
+#ndGameCoupons .ndg-hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;font-size:10px;font-weight:1000;letter-spacing:1px;text-shadow:0 2px 8px #000}
+#ndGameCoupons .ndg-hud span{padding:7px 9px;background:#0008;border:1px solid #ffffff20;border-radius:9px}
+#ndGameCoupons .ndg-nav-btn{border-color:#a22b22!important;background:linear-gradient(135deg,#241013,#111)!important;color:#fff!important}
+@media(max-width:600px){#ndGameCoupons .ndg-meta{grid-template-columns:1fr}#ndGameCoupons .ndg-hero{padding:20px 13px 13px}#ndGameCoupons .ndg-stats{padding-left:9px;padding-right:9px}#ndGameCoupons .ndg-stage{margin:0 8px}#ndGameCoupons canvas{height:330px}#ndGameCoupons .ndg-control{width:76px;height:54px}}
+</style>
+<script id="nd-game-coupons-logic">
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const STORE='ndg_run_highscore_v1', SKINSTORE='ndg_skin_v1', COUPONS='ndg_coupons_v1';
+const skins=[
+ {id:'classic',name:'CLÁSSICO',unlock:0,body:'#f5c542',accent:'#ff4d00'},
+ {id:'fire',name:'FOGO',unlock:700,body:'#ff4d00',accent:'#ffe066'},
+ {id:'neon',name:'NEON',unlock:1600,body:'#00e5ff',accent:'#ff00a8'},
+ {id:'gold',name:'OURO ND',unlock:2800,body:'#ffe066',accent:'#fff4bb'},
+ {id:'shadow',name:'SOMBRA',unlock:4200,body:'#d9d9e2',accent:'#7b61ff'}
+];
+let root,canvas,ctx,raf=0,last=0,running=false,score=0,high=0,lane=1,playerY=0,speed=0.34,spawn=0,objects=[],distance=0,phase=0,skin='classic',collected=0,runId=0;
+let W=900,H=500,dpr=1;
+function getNum(k){try{return Number(localStorage.getItem(k)||0)}catch(e){return 0}}
+function getCoupons(){try{return JSON.parse(localStorage.getItem(COUPONS)||'[]')}catch(e){return []}}
+function saveCoupons(v){try{localStorage.setItem(COUPONS,JSON.stringify(v))}catch(e){}}
+function moneyPoints(n){return Math.floor(n).toLocaleString('pt-BR')}
+function build(){
+ if($('#ndGameCoupons'))return;
+ const container=$('.container')||document.body;
+ root=document.createElement('section');root.id='ndGameCoupons';
+ root.innerHTML=`<div class="ndg-shell">
+ <div class="ndg-hero"><div class="ndg-kicker">ND BURGS ORIGINAL GAME</div><div class="ndg-title">BURGS RUN 3D</div><p class="ndg-sub">Corra pela cidade, desvie dos obstáculos, colete BURGS e desbloqueie skins. Só quem tem reflexo de verdade chega aos cupons especiais.</p></div>
+ <div class="ndg-stats"><div class="ndg-stat"><span>PONTOS DA CORRIDA</span><strong id="ndgScore">0</strong></div><div class="ndg-stat"><span>RECORDE</span><strong id="ndgHigh">0</strong></div><div class="ndg-stat"><span>BURGS COLETADOS</span><strong id="ndgBurgs">0</strong></div></div>
+ <div class="ndg-stage"><canvas id="ndgCanvas" aria-label="Jogo Burgs Run 3D"></canvas><div class="ndg-hud"><span id="ndgPhase">FASE 1 · RUA DA BURGS</span><span id="ndgSpeed">VELOCIDADE 1X</span></div>
+ <div class="ndg-overlay" id="ndgOverlay"><div class="ndg-overlay-card"><h3 id="ndgOverlayTitle">PRONTO PARA O DESAFIO?</h3><p id="ndgOverlayText">Desvie dos bloqueios, pegue os BURGS dourados e tente chegar ao topo. A cada fase a corrida fica mais rápida.</p><button class="ndg-primary" id="ndgStart">▶ COMEÇAR CORRIDA</button></div></div></div>
+ <div class="ndg-controls"><button class="ndg-control" id="ndgLeft" aria-label="Mover para esquerda">◀</button><button class="ndg-control" id="ndgJump" aria-label="Pular">⬆</button><button class="ndg-control" id="ndgRight" aria-label="Mover para direita">▶</button></div>
+ <div class="ndg-meta"><div class="ndg-panel"><h4>👟 ESCOLHA SUA SKIN</h4><div class="ndg-skins" id="ndgSkins"></div><p style="margin-top:9px">Desbloqueie novas aparências fazendo mais pontos em uma corrida. Skins não dão vantagem injusta.</p></div>
+ <div class="ndg-panel"><h4>🏆 MISSÕES DE CUPONS</h4><div class="ndg-rewards"><div class="ndg-reward"><span>4.500 pontos em uma corrida</span><strong>5% OFF</strong></div><div class="ndg-reward"><span>9.000 pontos em uma corrida</span><strong>10% OFF</strong></div></div><p style="margin-top:9px">As metas são difíceis e a velocidade aumenta a cada fase.</p></div></div>
+ <div class="ndg-coupon-result" id="ndgCoupon"><div>🏆 CONQUISTA DESBLOQUEADA</div><strong id="ndgCouponCode"></strong><div id="ndgCouponText" class="ndg-small"></div><button class="ndg-primary" id="ndgCopy" style="margin-top:10px">COPIAR CUPOM</button></div>
+ <div class="ndg-note">Dica: use as setas do teclado ou os botões na tela. No celular, deslize para os lados para trocar de faixa. Os cupons exibidos nesta versão são guardados neste navegador; para validar desconto de forma segura em todos os dispositivos, é necessário conectar uma validação no sistema de pedidos.</div>
+ </div>`;
+ const first=container.querySelector('.categoria');
+ if(first)first.parentNode.insertBefore(root,first);else container.appendChild(root);
+ canvas=$('#ndgCanvas',root);ctx=canvas.getContext('2d');
+ high=getNum(STORE);try{skin=localStorage.getItem(SKINSTORE)||'classic'}catch(e){};if(!skins.some(x=>x.id===skin))skin='classic';$('#ndgHigh',root).textContent=moneyPoints(high);
+ renderSkins();resize();window.addEventListener('resize',resize);
+ $('#ndgStart',root).addEventListener('click',start);
+ $('#ndgLeft',root).addEventListener('click',()=>move(-1));
+ $('#ndgRight',root).addEventListener('click',()=>move(1));
+ $('#ndgJump',root).addEventListener('click',jump);
+ $('#ndgCopy',root).addEventListener('click',copyCoupon);
+ canvas.addEventListener('pointerdown',e=>{canvas.dataset.x=e.clientX;canvas.dataset.y=e.clientY});
+ canvas.addEventListener('pointerup',e=>{const dx=e.clientX-Number(canvas.dataset.x||e.clientX),dy=e.clientY-Number(canvas.dataset.y||e.clientY);if(Math.abs(dx)>25&&Math.abs(dx)>Math.abs(dy))move(dx<0?-1:1);else if(dy < -25)jump()});
+ document.addEventListener('keydown',key);
+ draw(0);
+}
+function resize(){if(!canvas)return;const r=canvas.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,2);W=Math.max(320,r.width);H=Math.max(280,r.height);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw(0)}
+function phaseInfo(){if(score<900)return {n:1,name:'RUA DA BURGS',sky:'#12172b',road:'#292a31'};if(score<2100)return {n:2,name:'BAIRRO NEON',sky:'#20122b',road:'#25232e'};if(score<3600)return {n:3,name:'ZONA INDUSTRIAL',sky:'#2b1714',road:'#292326'};if(score<5200)return {n:4,name:'AVENIDA TURBO',sky:'#111f29',road:'#222a30'};return {n:5,name:'DESAFIO FINAL ND',sky:'#2a160e',road:'#242124'}}
+function laneX(l,z){const horizon=H*.30;const bottom=H*.97;const y=horizon+(bottom-horizon)*z;const roadW= W*(.16+.72*z);const center=W/2;return center+(l-1)*roadW*.29}
+function draw(t){
+ if(!ctx)return;
+ ctx.clearRect(0,0,W,H);
+ const ph=phaseInfo(), horizon=H*.29;
+ const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,ph.sky);sky.addColorStop(1,'#07080d');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // distant city
+ for(let i=0;i<22;i++){const bw=18+(i*17%37),bh=25+(i*31%80),x=i*W/20-(bw/2);ctx.fillStyle=i%3===0?'#ff4d001c':'#b4c8ff12';ctx.fillRect(x,horizon-bh,bw,bh);for(let y=horizon-bh+5;y<horizon-5;y+=10){ctx.fillStyle='#ffcf4330';ctx.fillRect(x+4,y,3,3)}}
+ // perspective road
+ ctx.beginPath();ctx.moveTo(W*.43,horizon);ctx.lineTo(W*.57,horizon);ctx.lineTo(W*.98,H);ctx.lineTo(W*.02,H);ctx.closePath();ctx.fillStyle=ph.road;ctx.fill();
+ ctx.strokeStyle='#ffb000';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W*.43,horizon);ctx.lineTo(W*.02,H);ctx.moveTo(W*.57,horizon);ctx.lineTo(W*.98,H);ctx.stroke();
+ for(let ln=1;ln<=2;ln++){for(let j=0;j<9;j++){const z=((j/9+(t*.00022)%1)%1);const y=horizon+(H-horizon)*z;const roadW=W*(.16+.72*z);const x=W/2+(ln-1.5)*roadW/3;ctx.strokeStyle='#ffffff35';ctx.lineWidth=1+z*2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+5+z*20);ctx.stroke()}}
+ // roadside lights
+ for(let i=0;i<8;i++){const z=((i/8+(t*.00015)%1)%1), y=horizon+(H-horizon)*z, xL=W/2-W*(.09+.40*z),xR=W-xL;ctx.fillStyle='#ffb000';ctx.fillRect(xL,y,2+z*3,3+z*6);ctx.fillRect(xR,y,2+z*3,3+z*6)}
+ // objects depth
+ objects.slice().sort((a,b)=>a.z-b.z).forEach(o=>{const z=o.z;if(z<0||z>1.15)return;const x=laneX(o.lane,z),y=horizon+(H-horizon)*z,sz=8+z*42;if(o.type==='burger'){ctx.save();ctx.translate(x,y-sz*.3);ctx.shadowColor='#ffb000';ctx.shadowBlur=12*z+2;ctx.fillStyle='#ffb000';ctx.beginPath();ctx.ellipse(0,0,sz*.48,sz*.28,0,Math.PI,Math.PI*2);ctx.fill();ctx.fillRect(-sz*.48,0,sz*.96,sz*.18);ctx.fillStyle='#58d65c';ctx.fillRect(-sz*.45,sz*.15,sz*.9,sz*.09);ctx.fillStyle='#f5c542';ctx.fillRect(-sz*.43,sz*.25,sz*.86,sz*.13);ctx.restore()}else{ctx.save();ctx.translate(x,y);ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(0,sz*.45,sz*.55,sz*.17,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=o.type==='train'?'#9e2028':o.type==='barrier'?'#ff4d00':'#5c6473';ctx.beginPath();ctx.moveTo(-sz*.43,0);ctx.lineTo(-sz*.30,-sz*.75);ctx.lineTo(sz*.30,-sz*.75);ctx.lineTo(sz*.43,0);ctx.closePath();ctx.fill();ctx.strokeStyle='#ffffff55';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#ffe066';ctx.fillRect(-sz*.22,-sz*.57,sz*.14,sz*.12);ctx.fillRect(sz*.08,-sz*.57,sz*.14,sz*.12);ctx.restore()}});
+ // player pseudo-3d runner
+ const px=laneX(lane,.91),py=H*.88-(playerY>0?Math.sin(playerY*Math.PI)*H*.12:0),ps=Math.min(W,H)*.09;
+ ctx.save();ctx.translate(px,py);ctx.shadowColor='#ff4d00';ctx.shadowBlur=16;
+ ctx.fillStyle='#0009';ctx.beginPath();ctx.ellipse(0,ps*.55,ps*.48,ps*.16,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=skins.find(x=>x.id===skin).body;ctx.beginPath();ctx.roundRect(-ps*.30,-ps*.30,ps*.60,ps*.62,ps*.12);ctx.fill();
+ ctx.fillStyle=skins.find(x=>x.id===skin).accent;ctx.fillRect(-ps*.24,-ps*.17,ps*.48,ps*.10);
+ ctx.fillStyle='#f2c6a0';ctx.beginPath();ctx.arc(0,-ps*.48,ps*.25,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#171719';ctx.beginPath();ctx.arc(0,-ps*.55,ps*.26,Math.PI,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#ddd';ctx.lineWidth=ps*.10;ctx.beginPath();ctx.moveTo(-ps*.18,ps*.28);ctx.lineTo(-ps*.32,ps*.53);ctx.moveTo(ps*.18,ps*.28);ctx.lineTo(ps*.30,ps*.52);ctx.stroke();
+ ctx.restore();
+ // faint scan glow
+ const gl=ctx.createLinearGradient(0,0,W,H);gl.addColorStop(0,'#ff4d0008');gl.addColorStop(1,'#ffb00010');ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
+}
+function renderSkins(){const el=$('#ndgSkins',root);if(!el)return;el.innerHTML='';const progress=Math.max(score,high);skins.forEach(s=>{const b=document.createElement('button');b.className='ndg-skin'+(skin===s.id?' selected':'');b.textContent=s.unlock===0?s.name:`${s.name} · ${s.unlock.toLocaleString('pt-BR')}`;b.disabled=progress<s.unlock&&s.unlock>0;b.addEventListener('click',()=>{if(progress>=s.unlock){skin=s.id;try{localStorage.setItem(SKINSTORE,skin)}catch(e){}renderSkins();draw(performance.now())}});el.appendChild(b)})}
+function updateHud(){if(!root)return;$('#ndgScore',root).textContent=moneyPoints(score);$('#ndgHigh',root).textContent=moneyPoints(high);$('#ndgBurgs',root).textContent=collected;const p=phaseInfo();$('#ndgPhase',root).textContent=`FASE ${p.n} · ${p.name}`;$('#ndgSpeed',root).textContent=`VELOCIDADE ${(1+score/2600).toFixed(1)}X`;renderSkins()}
+function move(d){if(!root)return;lane=Math.max(0,Math.min(2,lane+d))}
+function jump(){if(running&&playerY<=0)playerY=1}
+function key(e){if(!root||!root.classList.contains('nd-game-open'))return;if(['ArrowLeft','a','A'].includes(e.key)){e.preventDefault();move(-1)}if(['ArrowRight','d','D'].includes(e.key)){e.preventDefault();move(1)}if(['ArrowUp',' ','w','W'].includes(e.key)){e.preventDefault();jump()}if(e.key==='Enter'&&!running)start()}
+function start(){if(running)return;score=0;lane=1;playerY=0;speed=.34;spawn=.4;objects=[];distance=0;collected=0;runId++;running=true;last=performance.now();$('#ndgOverlay',root).hidden=true;$('#ndgCoupon',root).classList.remove('show');cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function loop(now){if(!running)return;const dt=Math.min(40,now-last);last=now;const factor=dt/16.67;distance+=dt;score+=dt*.26*(1+score/9000*.25);speed=.30+Math.min(.70,score/6500*.70);spawn-=dt/1000;
+ if(spawn<=0){const l=Math.floor(Math.random()*3),roll=Math.random();objects.push({lane:l,z:0,type:roll<.27?'burger':roll<.58?'barrier':roll<.80?'crate':'train'});spawn=Math.max(.38,1.05-score/9000)+(Math.random()*.28)}
+ objects.forEach(o=>o.z+=speed*dt/1000);
+ if(playerY>0)playerY=Math.max(0,playerY-dt/420);
+ for(let i=objects.length-1;i>=0;i--){const o=objects[i];if(o.z>.82&&o.z<1.02&&o.lane===lane){if(o.type==='burger'){collected++;score+=85;objects.splice(i,1)}else if(o.z>.91&&playerY<.28){endGame();return}}if(o.z>1.12)objects.splice(i,1)}
+ updateHud();draw(now);raf=requestAnimationFrame(loop)}
+function endGame(){running=false;cancelAnimationFrame(raf);high=Math.max(high,Math.floor(score));try{localStorage.setItem(STORE,String(high))}catch(e){}updateHud();unlockCoupons(Math.floor(score));$('#ndgOverlayTitle',root).textContent='CORRIDA ENCERRADA!';$('#ndgOverlayText',root).textContent=`Você fez ${moneyPoints(score)} pontos e coletou ${collected} BURGS. Treine os reflexos e tente chegar à próxima meta.`;$('#ndgStart',root).textContent='↻ JOGAR NOVAMENTE';$('#ndgOverlay',root).hidden=false;draw(performance.now())}
+function unlockCoupons(points){let list=getCoupons(),newCoupon=null;const tiers=[{min:9000,pct:10},{min:4500,pct:5}];for(const t of tiers){if(points>=t.min&&!list.some(c=>c.pct===t.pct)){const code='ND'+t.pct+'-'+Math.random().toString(36).slice(2,6).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();newCoupon={pct:t.pct,code,created:Date.now(),points};list.push(newCoupon);break}}saveCoupons(list);const box=$('#ndgCoupon',root);if(newCoupon){$('#ndgCouponCode',root).textContent=newCoupon.code;$('#ndgCouponText',root).textContent=`Você conquistou ${newCoupon.pct}% de desconto. Anote o código e informe à ND BURGS ao fazer o pedido. Cupom local de demonstração.`;box.classList.add('show')}else if(list.length){const c=list[list.length-1];$('#ndgCouponCode',root).textContent=c.code;$('#ndgCouponText',root).textContent=`Seu cupom salvo: ${c.pct}% OFF. Para ganhar outro, alcance a próxima meta disponível.`;box.classList.add('show')}}
+async function copyCoupon(){const code=$('#ndgCouponCode',root)?.textContent||'';if(!code)return;try{await navigator.clipboard.writeText(code);$('#ndgCopy',root).textContent='COPIADO!'}catch(e){const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();$('#ndgCopy',root).textContent='COPIADO!'}}
+function addNavButton(nav){if(!nav||nav.querySelector('[data-ndg-nav]'))return;const b=document.createElement('button');b.type='button';b.className='categoria-btn ndg-nav-btn';b.dataset.ndgNav='1';b.textContent='🎮 JOGUE E GANHE CUPONS';b.addEventListener('click',openGame);nav.appendChild(b)}
+function openGame(){if(!root)build();root.classList.add('nd-game-open');root.scrollIntoView({behavior:'smooth',block:'start'});resize();draw(performance.now())}
+function init(){build();document.querySelectorAll('.categoria-menu,#nd18Sidebar,#nd20QuickCats,#nd15Nav').forEach(addNavButton);const obs=new MutationObserver(()=>document.querySelectorAll('.categoria-menu,#nd18Sidebar,#nd20QuickCats,#nd15Nav').forEach(addNavButton));obs.observe(document.body,{childList:true,subtree:true});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+
+<script id="ndg-checkout-coupon-field">
+(function(){
+ function addField(){
+  const modal=document.getElementById('modalFinalizar');
+  if(!modal||document.getElementById('ndgCouponInput'))return;
+  const obs=document.getElementById('observacaoModal');
+  if(!obs)return;
+  const wrap=document.createElement('div');
+  wrap.id='ndgCouponWrap';
+  wrap.style.cssText='margin:14px 0;padding:13px;border:1px solid #ff4d00;border-radius:13px;background:linear-gradient(135deg,#21110d,#101014)';
+  wrap.innerHTML='<label for="ndgCouponInput" style="margin:0 0 7px;color:#ffb000;font-weight:900">🎟️ CUPOM BURGS RUN</label><input id="ndgCouponInput" type="text" autocomplete="off" placeholder="Digite o código que você conquistou" style="width:100%;text-transform:uppercase"><small style="display:block;color:#999;font-size:11px;line-height:1.4;margin-top:6px">Conquistou no jogo? Digite o código para calcular o desconto no subtotal.</small>';
+  obs.parentNode.insertBefore(wrap,obs);
+ }
+ function init(){
+  addField();
+  const modal=document.getElementById('modalFinalizar');
+  if(modal)new MutationObserver(addField).observe(modal,{childList:true,subtree:true});
+  setTimeout(addField,500);setTimeout(addField,1500);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 </body>
 </html>
