@@ -12279,6 +12279,85 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<!-- ND BURGS R53 — RUAS SELECIONÁVEIS DENTRO DA PESQUISA -->
+<style id="nd-r53-street-picker-css">
+#modalFinalizar #ruaModal{display:none!important}
+#modalFinalizar .nd-r53-street-picker{position:relative;width:100%;margin:5px 0 13px}
+#modalFinalizar #ruaBuscaModal{width:100%!important;box-sizing:border-box!important;min-height:54px!important;padding:14px 14px 14px 44px!important;border:2px solid #ff6500!important;border-radius:13px!important;background:#151517!important;color:#fff!important;font-size:16px!important;font-weight:700!important;outline:none!important}
+#modalFinalizar .nd-r53-search-icon{position:absolute;z-index:2;left:15px;top:16px;font-size:20px;pointer-events:none}
+#modalFinalizar .nd-r53-street-list{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;max-height:260px;overflow-y:auto;z-index:999999;background:#111114;border:1px solid #ff6500;border-radius:13px;box-shadow:0 14px 32px #000c;padding:5px}
+#modalFinalizar .nd-r53-street-list.open{display:block}
+#modalFinalizar .nd-r53-street-option{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:13px 10px;border:0;border-bottom:1px solid #29292e;background:transparent;color:#fff;text-align:left;font-size:13px;font-weight:800;cursor:pointer;border-radius:8px}
+#modalFinalizar .nd-r53-street-option:last-child{border-bottom:0}
+#modalFinalizar .nd-r53-street-option:active,#modalFinalizar .nd-r53-street-option:hover{background:#ff6500;color:#fff}
+#modalFinalizar .nd-r53-street-option strong{white-space:nowrap;color:#ff9a4d;font-size:12px}
+#modalFinalizar .nd-r53-street-option:hover strong{color:#fff}
+#modalFinalizar .nd-r53-street-help{padding:12px;margin:4px 0 12px;border:1px solid #343438;border-radius:12px;background:#101012;color:#ddd;font-size:12px;line-height:1.55}
+#modalFinalizar .nd-r53-street-help b{color:#ff9145}
+#modalFinalizar .nd-r53-selected{display:none;margin:0 0 12px;padding:12px;border-radius:11px;background:#132016;border:1px solid #2c783d;color:#eaffed;font-size:13px;line-height:1.45}
+#modalFinalizar .nd-r53-selected.show{display:block}
+</style>
+<script id="nd-r53-street-picker-js">
+(function(){
+ 'use strict';
+ const $=s=>document.querySelector(s);
+ const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+ const money=n=>'R$ '+(Number(n)||0).toFixed(2).replace('.',',');
+ function init(){
+  const input=$('#ruaBuscaModal'),select=$('#ruaModal'),area=$('#enderecoAreaModal');
+  if(!input||!select||!area||input.dataset.ndR53)return;
+  input.dataset.ndR53='1';
+  input.placeholder='Digite o nome da rua ou avenida';
+  input.setAttribute('aria-label','Pesquise e selecione sua rua');
+  let wrap=input.closest('.nd-r53-street-picker');
+  if(!wrap){
+   wrap=document.createElement('div');wrap.className='nd-r53-street-picker';
+   input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+   const icon=document.createElement('span');icon.className='nd-r53-search-icon';icon.textContent='🔎';wrap.appendChild(icon);
+   const list=document.createElement('div');list.className='nd-r53-street-list';list.id='ndR53StreetList';list.setAttribute('role','listbox');wrap.appendChild(list);
+  }
+  let help=area.querySelector('.nd-r53-street-help');
+  if(!help){help=document.createElement('div');help.className='nd-r53-street-help';help.innerHTML='<b>É bem fácil:</b><br>1. Toque no campo e digite o nome da sua rua.<br>2. Escolha sua rua na lista que aparecerá logo abaixo.<br>3. Depois, informe o número da casa e, se precisar, o complemento.';input.insertAdjacentElement('afterend',help)}
+  let chosen=area.querySelector('.nd-r53-selected');
+  if(!chosen){chosen=document.createElement('div');chosen.className='nd-r53-selected';help.insertAdjacentElement('afterend',chosen)}
+  const list=wrap.querySelector('.nd-r53-street-list');
+  function options(){return Array.from(select.options).filter(o=>o.value&& !/^(BALCAO|RETIRADA|IFOOD|99FOOD)$/i.test(o.value)&&!/^ENDEREÇO A CONFIRMAR/i.test(o.value))}
+  function render(){
+   const q=norm(input.value);let arr=options();
+   if(q)arr=arr.filter(o=>norm(o.textContent).includes(q));
+   else arr=arr.slice(0,18);
+   list.innerHTML='';
+   if(!arr.length){const empty=document.createElement('div');empty.style.cssText='padding:14px;color:#ddd;font-size:12px;line-height:1.5';empty.textContent='Não encontrei essa rua. Tente digitar só uma parte do nome, por exemplo: BANANEIRAS.';list.appendChild(empty)}
+   arr.slice(0,30).forEach(o=>{
+    const b=document.createElement('button');b.type='button';b.className='nd-r53-street-option';b.setAttribute('role','option');
+    const name=document.createElement('span');name.textContent=o.textContent;
+    const fee=document.createElement('strong');fee.textContent=money((window.taxas||{})[o.value]);
+    b.append(name,fee);
+    b.addEventListener('mousedown',e=>e.preventDefault());
+    b.addEventListener('click',()=>{
+     select.value=o.value;input.value=o.textContent;input.dataset.selected=o.value;
+     list.classList.remove('open');chosen.innerHTML='✓ Rua selecionada: <b></b>';chosen.querySelector('b').textContent=o.textContent+' — '+money((window.taxas||{})[o.value]);chosen.classList.add('show');
+     select.dispatchEvent(new Event('change',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+     const num=$('#numeroModal');if(num)num.focus();
+    });list.appendChild(b);
+   });
+   list.classList.add('open');
+  }
+  input.addEventListener('focus',render);
+  input.addEventListener('input',()=>{select.value='';delete input.dataset.selected;chosen.classList.remove('show');render()});
+  input.addEventListener('keydown',e=>{if(e.key==='Escape')list.classList.remove('open');if(e.key==='Enter'&&list.classList.contains('open')){const first=list.querySelector('button');if(first){e.preventDefault();first.click()}}});
+  document.addEventListener('click',e=>{if(!wrap.contains(e.target))list.classList.remove('open')});
+  select.addEventListener('change',()=>{const o=select.options[select.selectedIndex];if(o&&o.value){input.value=o.textContent;input.dataset.selected=o.value;chosen.innerHTML='✓ Rua selecionada: <b></b>';chosen.querySelector('b').textContent=o.textContent+' — '+money((window.taxas||{})[o.value]);chosen.classList.add('show')}});
+  if(select.value){const o=select.options[select.selectedIndex];if(o&&o.value){input.value=o.textContent;input.dataset.selected=o.value;chosen.innerHTML='✓ Rua selecionada: <b></b>';chosen.querySelector('b').textContent=o.textContent+' — '+money((window.taxas||{})[o.value]);chosen.classList.add('show')}}
+ }
+ function boot(){init();const modal=$('#modalFinalizar');if(modal)new MutationObserver(()=>{if($('#ruaBuscaModal')&&!$('#ruaBuscaModal').dataset.ndR53)init()}).observe(modal,{childList:true,subtree:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+ const oldBuild=window.buildCheckout;
+ if(typeof oldBuild==='function'&&!oldBuild.__ndR53){window.buildCheckout=function(){const r=oldBuild.apply(this,arguments);setTimeout(init,30);return r};window.buildCheckout.__ndR53=true}
+})();
+</script>
+
 </body>
 </html>
 
