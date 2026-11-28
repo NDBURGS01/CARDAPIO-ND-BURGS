@@ -6695,7 +6695,7 @@ header .logo{display:none!important}
  function openGateIfNeeded(){if(!localStorage.getItem('nd17_tipo'))showGate();else{ensureMainForms();updateBar();cartTotalSync()}}
  function patchOpenCart(){if(window.__nd17Cart)return;const old=window.abrirCarrinho;if(typeof old!=='function')return;window.abrirCarrinho=function(){ensureMainForms();const r=old.apply(this,arguments);setTimeout(cartTotalSync,30);return r};window.__nd17Cart=true}
  function patchBuildCheckout(){if(typeof window.buildCheckout==='function'&&!window.buildCheckout.__nd17){const old=window.buildCheckout;window.buildCheckout=function(){const r=old.apply(this,arguments);setTimeout(()=>{ensureMainForms();cartTotalSync();setupAutocomplete();bindFinishButton()},20);return r};window.buildCheckout.__nd17=true}}
- function bindFinishButton(){const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');if(btn){btn.textContent='CONCLUIR PEDIDO';btn.onclick=ndFinish}}
+ function bindFinishButton(){const btn=$('#modalFinalizar button[onclick*="finalizarPedidoModal"]');if(btn){btn.textContent='CONCLUIR #NDBURGS';btn.onclick=ndFinish}}
  function ndFinish(){
    if(!cart().length)return alert('Seu carrinho está vazio.');
    const nome=$('#nomeModal')?.value.trim()||'', tel=$('#telefoneModal')?.value.trim()||'', tipo=$('#tipoPedidoModal')?.value||'ENTREGA', rua=$('#ruaModal')?.value||'', numero=$('#numeroModal')?.value.trim()||'', comp=$('#complementoModal')?.value.trim()||'', pagamento=$('#pagamentoModal')?.value||'', troco=$('#trocoModal')?.value||'', obs=$('#observacaoModal')?.value.trim()||'';
@@ -12398,3 +12398,71 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  let tries=0;const timer=setInterval(()=>{ensureTop();hideFirstGate();ensureCheckoutChoice();removeOldOptions();tries++;if(tries>30)clearInterval(timer)},300);
 })();
 </script>
+
+
+<!-- ND BURGS R50 — ENDEREÇO SOMENTE NO CHECKOUT -->
+<style id="nd-r50-address-only-checkout">
+/* O cliente NÃO escolhe endereço na tela principal. */
+#ndTopAddress,
+#ndFirstVisitGate,
+#ndFirstVisitGate.show{
+  display:none!important;
+}
+/* Evita qualquer espaço residual do bloco antigo. */
+body:has(#ndTopAddress){ }
+#ndR49CheckoutChoice{margin-bottom:12px}
+.nd-r50-address-title{font-size:16px;font-weight:1000;margin:12px 0 8px;color:#fff}
+.nd-r50-address-help{font-size:12px;line-height:1.45;color:#bdbdbd;margin-bottom:10px}
+.nd-r50-change-address{width:100%;min-height:44px;border:1px solid #555;border-radius:10px;background:#202020;color:#fff;font-weight:900;cursor:pointer;margin-top:8px}
+</style>
+<script id="nd-r50-address-only-checkout">
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+function removeMainAddress(){
+  ['#ndTopAddress','#ndFirstVisitGate','#ndEnderecoAjuda'].forEach(sel=>{
+    document.querySelectorAll(sel).forEach(el=>el.remove());
+  });
+  try{document.body.style.overflow='';}catch(e){}
+}
+function improveCheckoutAddress(){
+  const step=$('#modalFinalizar .nd-v4-step-content[data-content="2"]');
+  if(!step)return;
+  const area=$('#enderecoAreaModal');
+  if(!area)return;
+  if(!$('#ndR50AddressTitle')){
+    const title=document.createElement('div');
+    title.id='ndR50AddressTitle';
+    title.className='nd-r50-address-title';
+    title.textContent='📍 ESCOLHA O ENDEREÇO DE ENTREGA';
+    const help=document.createElement('div');
+    help.className='nd-r50-address-help';
+    help.textContent='Seu endereço será escolhido aqui, durante o checkout. Você pode selecionar sua rua, informar o número ou usar sua localização atual para conferir o ponto no mapa.';
+    area.parentNode.insertBefore(title,area);
+    area.parentNode.insertBefore(help,area);
+  }
+  const gps=document.querySelector('#ndR49CheckoutGps');
+  if(gps){
+    gps.style.display='block';
+    gps.style.marginTop='10px';
+  }
+  const old=document.querySelector('#ndV4SingleAddressSummary');
+  if(old) old.querySelectorAll('button').forEach(b=>b.remove());
+}
+function boot(){
+  removeMainAddress();
+  improveCheckoutAddress();
+  let n=0;
+  const timer=setInterval(()=>{
+    removeMainAddress();
+    improveCheckoutAddress();
+    n++; if(n>40)clearInterval(timer);
+  },250);
+  const mo=new MutationObserver(()=>{removeMainAddress();improveCheckoutAddress();});
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>mo.disconnect(),15000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
