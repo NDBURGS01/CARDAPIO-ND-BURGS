@@ -1,21 +1,46 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão + proteção contra layout antigo no primeiro paint -->
-<meta name="nd-site-version" content="20261128-R49">
+<meta name="nd-site-version" content="20261128-R48">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
-/* ND BURGS R49 HOTFIX: nunca bloquear o site esperando limpeza de cache. */
-(function(){
-  try { localStorage.setItem('ndburgs_site_version','20261128-R49'); } catch(e) {}
-  function releaseLoader(){
-    document.documentElement.classList.remove('nd-booting');
-    var loader=document.getElementById('ndR5Loader');
-    if(loader) loader.classList.add('hide');
+(function () {
+  const ND_SITE_VERSION = "20261128-R48";
+  const KEY = "ndburgs_site_version";
+  const RESET_KEY = "ndburgs_cache_reset_20261128_R48";
+  document.documentElement.classList.add("nd-booting");
+
+  async function resetOldCacheAndReload() {
+    try {
+      const tasks = [];
+      if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistrations) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        tasks.push(Promise.all(regs.map(r => r.unregister())));
+      }
+      if ("caches" in window && caches.keys) {
+        const keys = await caches.keys();
+        tasks.push(Promise.all(keys.map(k => caches.delete(k))));
+      }
+      await Promise.all(tasks);
+    } catch (e) {}
+    const u = new URL(window.location.href);
+    u.searchParams.set("_ndv", ND_SITE_VERSION);
+    u.searchParams.set("_ndfresh", Date.now().toString());
+    window.location.replace(u.toString());
   }
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(releaseLoader,350);},{once:true});
-  setTimeout(releaseLoader,2200);
+
+  try {
+    const old = localStorage.getItem(KEY);
+    if (old !== ND_SITE_VERSION && !sessionStorage.getItem(RESET_KEY)) {
+      localStorage.setItem(KEY, ND_SITE_VERSION);
+      sessionStorage.setItem(RESET_KEY, "1");
+      resetOldCacheAndReload();
+      return;
+    }
+    localStorage.setItem(KEY, ND_SITE_VERSION);
+  } catch (e) {}
 })();
 </script>
 <style id="nd-boot-protection">
@@ -32,12 +57,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ND BURGS">
-<link rel="manifest" href="./manifest.json?v=20261128-R49">
-<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R49">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R49">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R49">
-<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R49">
-<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R49">
+<link rel="manifest" href="./manifest.json?v=20261128-R48">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R48">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R48">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R48">
+<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R48">
+<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R48">
 
 <title>ND BURGS | Faça seu pedido</title>
 
@@ -11753,12 +11778,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     try{
-      if(sessionStorage.getItem('ndburgs_cache_reset_20261128_R49')==='1'){
-        sessionStorage.removeItem('ndburgs_cache_reset_20261128_R49');
+      if(sessionStorage.getItem('ndburgs_cache_reset_20261128_R48')==='1'){
+        sessionStorage.removeItem('ndburgs_cache_reset_20261128_R48');
         return;
       }
     }catch(_){}
-    navigator.serviceWorker.register('./sw.js?v=20261128-R49',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
+    navigator.serviceWorker.register('./sw.js?v=20261128-R48',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
   },{once:true});
 }
 
@@ -12255,78 +12280,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
  setTimeout(init,500);setTimeout(init,1400);
-})();
-</script>
-
-
-
-<!-- ND BURGS R49 — GANHE CUPONS: jogo runner 3D estilizado -->
-<style id="nd-r49-cupom-style">
-#ndCupomTab{background:linear-gradient(135deg,#f5c400,#ff8a00)!important;color:#111!important;border:1px solid #ffe98a!important;box-shadow:0 5px 20px #f5c40035;font-weight:1000!important;grid-column:1/-1;position:relative;overflow:hidden}
-#ndCupomTab:after{content:'JOGUE E DESBLOQUEIE ATÉ 10%';display:block;font-size:10px;letter-spacing:1.3px;margin-top:4px;opacity:.8}
-#nd-burgs-cupom-game{position:fixed;inset:0;z-index:1000000;background:#08090c;color:#fff;display:none;overflow:auto;font-family:inherit}
-#nd-burgs-cupom-game.open{display:block}
-#nd-burgs-cupom-game *{box-sizing:border-box}
-.ndcg-wrap{max-width:1000px;margin:auto;padding:12px 14px 32px}
-.ndcg-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;background:#08090cf2;padding:8px 0;z-index:3}
-.ndcg-brand{font-weight:1000;letter-spacing:1.5px;color:#f5c400}.ndcg-close,.ndcg-btn{border:1px solid #514719;background:#17181d;color:#fff;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.ndcg-btn.primary{background:linear-gradient(135deg,#ffe45c,#f5a900);color:#111;border:0;box-shadow:0 5px 18px #f5c40030}.ndcg-hero{text-align:center;padding:16px 8px 10px}.ndcg-hero h2{font-size:clamp(26px,5vw,43px);line-height:1.05;color:#f5c400;margin:8px 0;border:0}.ndcg-hero p{color:#c5c5cc;margin:8px auto;max-width:650px;font-size:14px}
-.ndcg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.ndcg-stat{background:linear-gradient(145deg,#1b1d23,#101115);border:1px solid #30323b;border-radius:14px;padding:10px;text-align:center}.ndcg-stat small{display:block;color:#9b9da6;font-size:10px;letter-spacing:1px}.ndcg-stat b{display:block;font-size:21px;color:#f5c400;margin-top:4px}
-.ndcg-stage{position:relative;background:radial-gradient(ellipse at 50% 20%,#29313d,#090a0e 70%);border:1px solid #343640;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px #0009;touch-action:pan-y}.ndcg-stage canvas{display:block;width:100%;height:min(55vh,440px);min-height:270px;touch-action:none}.ndcg-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;background:#08090c9c;backdrop-filter:blur(3px)}.ndcg-overlay[hidden]{display:none}.ndcg-overlay-card{max-width:430px}.ndcg-overlay h3{color:#f5c400;font-size:28px;margin:0 0 8px}.ndcg-overlay p{color:#e0e0e5;font-size:14px;line-height:1.5}.ndcg-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0}.ndcg-move{width:66px;height:48px;font-size:20px;touch-action:manipulation}.ndcg-note{text-align:center;color:#8f929b;font-size:11px;margin:8px 0 18px}.ndcg-section{margin-top:18px;padding:15px;border:1px solid #2d3038;border-radius:18px;background:linear-gradient(145deg,#17191e,#0e0f13)}.ndcg-section h3{color:#f5c400;margin:0 0 10px;font-size:17px}.ndcg-skins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ndcg-skin{border:1px solid #343741;border-radius:13px;padding:10px 6px;background:#111217;text-align:center;min-width:0}.ndcg-skin .avatar{font-size:31px;filter:drop-shadow(0 4px 6px #000)}.ndcg-skin b{display:block;font-size:12px;margin:4px 0}.ndcg-skin small{color:#aaa;font-size:10px;display:block;min-height:26px}.ndcg-skin button{width:100%;margin-top:8px;font-size:11px;padding:8px 4px}.ndcg-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ndcg-phase{border:1px solid #333640;border-radius:12px;padding:10px;background:#111217;font-size:12px}.ndcg-phase b{display:block;color:#f5c400;margin-bottom:4px}.ndcg-coupon{display:none;margin-top:12px;padding:16px;border:2px dashed #f5c400;border-radius:16px;background:linear-gradient(130deg,#29230b,#111);text-align:center}.ndcg-coupon.show{display:block}.ndcg-coupon strong{font-size:27px;color:#ffe45c;display:block}.ndcg-coupon code{display:inline-block;padding:8px 12px;margin:8px;background:#050505;border-radius:8px;color:#fff;font-weight:900;letter-spacing:1px}.ndcg-fine{font-size:11px;color:#92949d;line-height:1.5;margin-top:10px}
-@media(max-width:520px){.ndcg-wrap{padding:8px 10px 24px}.ndcg-stage canvas{height:48vh;min-height:260px}.ndcg-stats{gap:5px}.ndcg-stat{padding:8px 4px}.ndcg-stat b{font-size:18px}.ndcg-skins{grid-template-columns:repeat(2,1fr)}.ndcg-phases{grid-template-columns:repeat(2,1fr)}}
-</style>
-<div id="nd-burgs-cupom-game" aria-hidden="true">
- <div class="ndcg-wrap">
-  <div class="ndcg-top"><div class="ndcg-brand">◈ ND BURGS <span style="color:#aaa;font-size:10px">/ RUNNER</span></div><button class="ndcg-close" id="ndcgClose">✕ FECHAR</button></div>
-  <div class="ndcg-hero"><div style="font-size:11px;letter-spacing:3px;color:#aaa">DESAFIO OFICIAL</div><h2>GANHE CUPONS</h2><p>Corra pela cidade ND, desvie dos obstáculos, pegue moedas e sobreviva às fases. O desconto não vem fácil: só os melhores chegam aos cupons!</p></div>
-  <div class="ndcg-stats"><div class="ndcg-stat"><small>PONTUAÇÃO</small><b id="ndcgScore">0</b></div><div class="ndcg-stat"><small>MOEDAS ND</small><b id="ndcgCoins">0</b></div><div class="ndcg-stat"><small>FASE</small><b id="ndcgPhase">01 / 06</b></div></div>
-  <div class="ndcg-stage"><canvas id="ndcgCanvas" aria-label="Jogo de corrida ND BURGS"></canvas><div class="ndcg-overlay" id="ndcgOverlay"><div class="ndcg-overlay-card"><div style="font-size:43px">🍔⚡</div><h3 id="ndcgOverlayTitle">PRONTO PRA CORRER?</h3><p id="ndcgOverlayText">Desvie dos cones, caixas e trens. Pegue moedas douradas e sobreviva. A velocidade aumenta a cada fase!</p><button class="ndcg-btn primary" id="ndcgStart">▶ COMEÇAR CORRIDA</button></div></div></div>
-  <div class="ndcg-controls"><button class="ndcg-btn ndcg-move" data-move="-1" aria-label="Mover para esquerda">◀</button><button class="ndcg-btn ndcg-move" data-move="0" aria-label="Pular">⬆ PULAR</button><button class="ndcg-btn ndcg-move" data-move="1" aria-label="Mover para direita">▶</button><button class="ndcg-btn" id="ndcgSlide">⬇ DESLIZAR</button></div>
-  <div class="ndcg-note">PC: setas ou A/D • Espaço pula • S desliza • Celular: deslize na tela ou use os botões</div>
-  <div class="ndcg-coupon" id="ndcgCoupon"><div>🏆 VOCÊ VENCEU O DESAFIO ND!</div><strong id="ndcgDiscount">10% OFF</strong><div id="ndcgCouponDesc">Seu cupom de desconto</div><code id="ndcgCouponCode">ND-RUN-0000</code><button class="ndcg-btn primary" id="ndcgCopyCoupon">COPIAR CUPOM</button><div class="ndcg-fine">Cupom pessoal para uso em um pedido. Informe o código ao finalizar o pedido pelo WhatsApp. Não cumulativo; sujeito à conferência pela loja. Guarde o código.</div></div>
-  <div class="ndcg-section"><h3>👟 SUA SKIN</h3><div class="ndcg-skins" id="ndcgSkins"></div></div>
-  <div class="ndcg-section"><h3>🌆 MAPAS E FASES</h3><div class="ndcg-phases" id="ndcgPhases"></div><div class="ndcg-fine">Cada fase aumenta a velocidade e adiciona obstáculos. Moedas ficam salvas neste navegador e podem liberar skins. Cupons são raros: 5% a partir de 3.500 pontos; 10% a partir de 6.000 pontos.</div></div>
- </div>
-</div>
-<script id="nd-r49-cupom-game-script">
-(function(){'use strict';
- const $=id=>document.getElementById(id), root=$('nd-burgs-cupom-game'), canvas=$('ndcgCanvas'), ctx=canvas.getContext('2d');
- const SAVE='ndburgs_runner_save_r49', COUPONS='ndburgs_runner_coupons_r49';
- let save={coins:0,skin:0,unlocked:1};try{save={...save,...JSON.parse(localStorage.getItem(SAVE)||'{}')}}catch(e){}
- const skins=[{name:'Entregador ND',emoji:'🛵',cost:0,color:'#f5c400'},{name:'Burger Ninja',emoji:'🥷',cost:120,color:'#d5d8df'},{name:'Chef Turbo',emoji:'👨‍🍳',cost:240,color:'#ff5b42'},{name:'Neon Runner',emoji:'🦸',cost:400,color:'#56f7bd'},{name:'Rei do Bacon',emoji:'👑',cost:650,color:'#ffb347'},{name:'Lenda Dourada',emoji:'⚡',cost:1000,color:'#ffe45c'}];
- const phases=[['Cotia Neon','🌃'],['Avenida Turbo','🚦'],['Distrito Burger','🍔'],['Trilhos de Aço','🚆'],['Noite Dourada','🌉'],['Lenda ND','🏆']];
- let W=900,H=420,dpr=1,running=false,raf=0,last=0,score=0,runCoins=0,phase=1,speed=1,playerLane=1,jump=0,slide=0,obstacles=[],coins=[],spawn=0,coinSpawn=0,roadOffset=0,swipeStart=null,earnedThisRun=false;
- function persist(){localStorage.setItem(SAVE,JSON.stringify(save))}
- function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=Math.max(320,r.width);H=Math.max(260,r.height);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}
- function drawBackground(){let sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,['#141e30','#24162c','#171327','#18202b','#201c24','#101821'][phase-1]||'#151b29');sky.addColorStop(1,'#090a0e');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);ctx.fillStyle='#f5c400';for(let i=0;i<24;i++){let x=(i*97+phase*31)%W,y=(i*37)%Math.max(90,H*.35);ctx.globalAlpha=.25+(i%3)*.15;ctx.fillRect(x,y,2,2)}ctx.globalAlpha=1;
-  const horizon=H*.37;ctx.fillStyle='#20242c';for(let i=0;i<18;i++){let bw=20+(i*13)%40,bh=25+(i*29)%90,x=(i*59)%W;ctx.fillRect(x,horizon-bh,bw,bh);ctx.fillStyle='#f5c400';for(let j=0;j<3;j++)ctx.fillRect(x+5+j*8,horizon-bh+7,3,4);ctx.fillStyle='#20242c'}
-  ctx.fillStyle='#31343b';ctx.beginPath();ctx.moveTo(W*.38,horizon);ctx.lineTo(W*.62,horizon);ctx.lineTo(W*.98,H);ctx.lineTo(W*.02,H);ctx.closePath();ctx.fill();ctx.strokeStyle='#737780';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W*.38,horizon);ctx.lineTo(W*.02,H);ctx.moveTo(W*.62,horizon);ctx.lineTo(W*.98,H);ctx.stroke();
-  for(let lane=1;lane<=2;lane++){let x0=W*(.38+lane*.08),x1=W*(.38+lane*.08),x2=W*(.02+lane*.32),x3=W*(.02+lane*.32);ctx.strokeStyle='#b5b8bd';ctx.lineWidth=2;ctx.setLineDash([18,16]);ctx.lineDashOffset=-roadOffset;ctx.beginPath();ctx.moveTo(x0,horizon);ctx.lineTo(x2,H);ctx.stroke();ctx.setLineDash([])} }
- function project(lane,z){let t=Math.max(0,Math.min(1,z)),pers=.12+t*.88;let center=W/2+(lane-1)*W*.22*pers;return {x:center,y:H*.37+pers*H*.63,w:pers*W*.11,s:pers}}
- function draw(){drawBackground();const horizon=H*.37; // perspective obstacles and coins
-  obstacles.slice().sort((a,b)=>a.z-b.z).forEach(o=>{let p=project(o.lane,o.z);ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.s,p.s);if(o.type==='train'){ctx.fillStyle='#22252d';ctx.fillRect(-48,-74,96,72);ctx.fillStyle='#f5c400';ctx.fillRect(-42,-65,84,6);ctx.fillStyle='#86d9ff';ctx.fillRect(-35,-50,22,20);ctx.fillRect(13,-50,22,20);ctx.fillStyle='#e84d36';ctx.fillRect(-42,-12,84,8)}else if(o.type==='box'){ctx.fillStyle='#9b5627';ctx.fillRect(-24,-37,48,37);ctx.strokeStyle='#e5a15b';ctx.strokeRect(-24,-37,48,37);ctx.beginPath();ctx.moveTo(-24,-37);ctx.lineTo(24,0);ctx.moveTo(24,-37);ctx.lineTo(-24,0);ctx.stroke()}else{ctx.fillStyle='#f5c400';ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(25,0);ctx.lineTo(-25,0);ctx.closePath();ctx.fill();ctx.fillStyle='#f4f4f4';ctx.fillRect(-17,-15,34,5)}ctx.restore()});
-  coins.forEach(c=>{let p=project(c.lane,c.z);ctx.beginPath();ctx.fillStyle='#ffe45c';ctx.ellipse(p.x,p.y-9*p.s,8*p.s,11*p.s,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#b77900';ctx.lineWidth=2*p.s;ctx.stroke();ctx.fillStyle='#6c4800';ctx.font=`bold ${10*p.s}px sans-serif`;ctx.textAlign='center';ctx.fillText('N',p.x,p.y-5*p.s)});
-  let px=W/2+(playerLane-1)*W*.22,py=H*.82-jump*H*.18;ctx.save();ctx.translate(px,py);let skin=skins[save.skin]||skins[0];ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(0,13,24,7,0,0,Math.PI*2);ctx.fill();ctx.font=`${slide?35:48}px sans-serif`;ctx.textAlign='center';ctx.fillText(slide?'🛹':skin.emoji,0,slide?8:0);if(!slide){ctx.fillStyle=skin.color;ctx.fillRect(-10,5,20,16);ctx.fillStyle='#fff';ctx.fillRect(-7,8,5,3);ctx.fillRect(2,8,5,3)}ctx.restore();
-  ctx.fillStyle='#fff';ctx.font='bold 12px sans-serif';ctx.textAlign='left';ctx.fillText(phases[phase-1][1]+' '+phases[phase-1][0],14,22);
- }
- function addObstacle(){let lane=Math.floor(Math.random()*3),types=phase>=4?['cone','box','train']:['cone','box','cone'];obstacles.push({lane,z:0,type:types[Math.floor(Math.random()*types.length)]})}
- function move(dir){if(!running)return;if(dir===0){if(jump===0&&slide===0)jump=1.01}else playerLane=Math.max(0,Math.min(2,playerLane+dir))}
- function loop(t){if(!running)return;let dt=Math.min(35,t-last||16);last=t;let k=dt/16;speed=1+Math.floor(score/600)*.13;roadOffset=(roadOffset+7*speed*k)%40;score+=Math.floor(1.4*speed*k);phase=Math.min(6,1+Math.floor(score/650));$('ndcgScore').textContent=score.toLocaleString('pt-BR');$('ndcgCoins').textContent=(save.coins+runCoins).toLocaleString('pt-BR');$('ndcgPhase').textContent=String(phase).padStart(2,'0')+' / 06';spawn-=dt;coinSpawn-=dt;if(spawn<=0){addObstacle();spawn=Math.max(330,900/speed)+(Math.random()*350)}if(coinSpawn<=0){coins.push({lane:Math.floor(Math.random()*3),z:0});coinSpawn=420+Math.random()*500}
-  obstacles.forEach(o=>o.z+=.00125*speed*dt);coins.forEach(c=>c.z+=.0011*speed*dt);
-  if(jump>0)jump=Math.max(0,jump-.035*k);if(slide>0)slide=Math.max(0,slide-.04*k);
-  for(let i=obstacles.length-1;i>=0;i--){let o=obstacles[i];if(o.z>.86&&o.z<.99&&o.lane===playerLane){let safe=(o.type==='train'?jump>.45:o.type==='box'?slide>.2:jump>.3||slide>.2);if(!safe){finish();return}}if(o.z>1.1)obstacles.splice(i,1)}
-  for(let i=coins.length-1;i>=0;i--){let c=coins[i];if(c.z>.88&&c.z<1.02&&c.lane===playerLane){runCoins++;coins.splice(i,1)}else if(c.z>1.1)coins.splice(i,1)}draw();raf=requestAnimationFrame(loop)}
- function start(){cancelAnimationFrame(raf);score=0;runCoins=0;phase=1;speed=1;playerLane=1;jump=0;slide=0;obstacles=[];coins=[];spawn=400;coinSpawn=600;last=performance.now();running=true;earnedThisRun=false;$('ndcgCoupon').classList.remove('show');$('ndcgOverlay').hidden=true;raf=requestAnimationFrame(loop)}
- function finish(){running=false;cancelAnimationFrame(raf);save.coins=(save.coins||0)+runCoins;save.unlocked=Math.max(save.unlocked,Math.min(6,phase+1));persist();renderSkins();renderPhases();$('ndcgCoins').textContent=save.coins.toLocaleString('pt-BR');let title='QUASE LÁ!';let msg=`Você fez ${score.toLocaleString('pt-BR')} pontos e coletou ${runCoins} moedas.`;if(score>=6000){title='LENDÁRIO! 10% OFF';msg='Você superou o desafio mais difícil. Seu cupom de 10% foi liberado!';award(10)}else if(score>=3500){title='MANDOU BEM! 5% OFF';msg='Você conquistou um cupom de 5%. Quer tentar buscar os 10%?';award(5)}else if(score>=1800){title='BOA CORRIDA!';msg+=' Faltou pouco para o primeiro cupom. Chegue a 3.500 pontos para liberar 5%.'}else{msg+=' Treine, libere skins e tente chegar aos 3.500 pontos para o primeiro cupom.'}$('ndcgOverlayTitle').textContent=title;$('ndcgOverlayText').textContent=msg;$('ndcgStart').textContent='↻ JOGAR NOVAMENTE';$('ndcgOverlay').hidden=false;draw()}
- function award(pct){let codes=[];try{codes=JSON.parse(localStorage.getItem(COUPONS)||'[]')}catch(e){}let existing=codes.find(c=>c.pct===pct);if(!existing){let code='ND'+pct+'-'+Math.random().toString(36).slice(2,6).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase();existing={pct,code,created:new Date().toISOString(),used:false};codes.push(existing);localStorage.setItem(COUPONS,JSON.stringify(codes))}$('ndcgDiscount').textContent=pct+'% OFF';$('ndcgCouponDesc').textContent=pct===10?'Desconto máximo desbloqueado!':'Cupom conquistado na corrida!';$('ndcgCouponCode').textContent=existing.code;$('ndcgCoupon').classList.add('show');}
- function renderSkins(){let host=$('ndcgSkins');host.innerHTML='';skins.forEach((s,i)=>{let owned=i===0||((save.owned||[]).includes(i)),active=save.skin===i;let card=document.createElement('div');card.className='ndcg-skin';card.innerHTML=`<div class="avatar">${s.emoji}</div><b>${s.name}</b><small>${active?'EQUIPADA':owned?'DESBLOQUEADA':s.cost+' moedas ND'}</small><button class="ndcg-btn ${active?'primary':''}" data-skin="${i}">${active?'EQUIPADA':owned?'EQUIPAR':'DESBLOQUEAR'}</button>`;host.appendChild(card)});host.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{let i=+b.dataset.skin;save.owned=save.owned||[];if(i!==0&&!save.owned.includes(i)){if(save.coins<skins[i].cost){alert('Você precisa de '+skins[i].cost+' moedas ND para desbloquear esta skin.');return}save.coins-=skins[i].cost;save.owned.push(i)}save.skin=i;persist();renderSkins();$('ndcgCoins').textContent=save.coins.toLocaleString('pt-BR');draw()})}
- function renderPhases(){let host=$('ndcgPhases');host.innerHTML='';phases.forEach((p,i)=>{let unlocked=i<save.unlocked;let d=document.createElement('div');d.className='ndcg-phase';d.innerHTML=`<b>${p[1]} FASE ${String(i+1).padStart(2,'0')}</b>${p[0]}<div style="color:${unlocked?'#69e6a0':'#858791'};margin-top:5px">${unlocked?'✓ LIBERADA':'🔒 BLOQUEADA'}</div>`;host.appendChild(d)})}
- function open(){root.classList.add('open');root.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';resize();draw();renderSkins();renderPhases();$('ndcgCoins').textContent=(save.coins||0).toLocaleString('pt-BR')}
- function close(){running=false;cancelAnimationFrame(raf);root.classList.remove('open');root.setAttribute('aria-hidden','true');document.body.style.overflow=''}
- function setupTab(){let menu=document.querySelector('.categoria-menu');if(menu&&!$('ndCupomTab')){let b=document.createElement('button');b.id='ndCupomTab';b.className='categoria-btn';b.type='button';b.textContent='🎮 GANHE CUPONS';b.onclick=open;menu.appendChild(b)}}
- $('ndcgClose').onclick=close;$('ndcgStart').onclick=start;$('ndcgSlide').onclick=()=>{if(running)slide=1};document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>move(+b.dataset.move));$('ndcgCopyCoupon').onclick=()=>{let code=$('ndcgCouponCode').textContent;if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(()=>alert('Cupom copiado: '+code)).catch(()=>prompt('Copie seu cupom:',code));else prompt('Copie seu cupom:',code)};
- document.addEventListener('keydown',e=>{if(!root.classList.contains('open'))return;if(e.key==='Escape'){close();return}if(!running)return;if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a'){e.preventDefault();move(-1)}else if(e.key==='ArrowRight'||e.key.toLowerCase()==='d'){e.preventDefault();move(1)}else if(e.key==='ArrowUp'||e.key===' '){e.preventDefault();move(0)}else if(e.key==='ArrowDown'||e.key.toLowerCase()==='s'){e.preventDefault();slide=1}});
- canvas.addEventListener('pointerdown',e=>{swipeStart={x:e.clientX,y:e.clientY}});canvas.addEventListener('pointerup',e=>{if(!swipeStart||!running)return;let dx=e.clientX-swipeStart.x,dy=e.clientY-swipeStart.y;if(Math.max(Math.abs(dx),Math.abs(dy))>24){if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy<0)move(0);else slide=1}swipeStart=null});window.addEventListener('resize',()=>{if(root.classList.contains('open')){resize();draw()}});
- setupTab();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupTab);new MutationObserver(setupTab).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
