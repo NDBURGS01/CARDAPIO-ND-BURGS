@@ -12358,6 +12358,65 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<!-- ND BURGS R55: CHECKOUT EM UMA ÚNICA TELA, FLUXO RÁPIDO -->
+<style id="nd-r55-one-screen-css">
+#modalFinalizar .painel-finalizar{max-height:94dvh!important;overflow-y:auto!important;padding-bottom:18px!important}
+#modalFinalizar .nd-v4-stepbar{display:none!important}
+#modalFinalizar .nd-v4-step-content{display:block!important;padding:14px!important;border:1px solid #29292f!important;border-radius:15px!important;background:#111114!important;margin:10px 0!important}
+#modalFinalizar .nd-v4-step-content[ data-content="1"]{margin-top:12px!important}
+#modalFinalizar .nd-v4-step-content>label{font-size:13px!important;margin:9px 0 6px!important}
+#modalFinalizar .nd-v4-step-content input,#modalFinalizar .nd-v4-step-content select,#modalFinalizar .nd-v4-step-content textarea{min-height:48px!important;font-size:16px!important;background:#fff!important;color:#171717!important;border:1px solid #c9c9c9!important}
+#modalFinalizar .nd-v4-step-content input::placeholder,#modalFinalizar .nd-v4-step-content textarea::placeholder{color:#777!important}
+#modalFinalizar .nd-v4-next[onclick^="ndNext"],#modalFinalizar .nd-v4-back{display:none!important}
+#modalFinalizar .nd-v4-step-content .nd-v4-pay{min-height:60px!important;font-size:14px!important}
+#modalFinalizar .nd-v4-step-content .nd-v4-payment-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+#modalFinalizar .nd-v4-step-content [data-type]{min-height:76px!important;font-size:15px!important}
+#modalFinalizar .nd-v4-summary{margin:10px 0!important;padding:12px!important;border-radius:12px!important}
+#modalFinalizar .nd-v4-final-total{font-size:24px!important;color:#ffd000!important;font-weight:1000!important}
+#modalFinalizar .nd-r55-submit{display:block!important;width:100%!important;min-height:58px!important;margin:14px 0 5px!important;background:linear-gradient(135deg,#ffe000,#ffb900)!important;color:#111!important;border:0!important;border-radius:14px!important;font-size:16px!important;font-weight:1000!important;box-shadow:0 7px 0 #9b7100!important;cursor:pointer!important}
+#modalFinalizar .nd-r55-help{margin:7px 0 12px!important;color:#c7c7c7!important;font-size:12px!important;line-height:1.45!important}
+#modalFinalizar .nd-r55-street-help{font-size:12px!important;color:#ffd000!important;margin:5px 0 8px!important}
+@media(max-width:520px){#modalFinalizar .painel-finalizar{max-height:96dvh!important}#modalFinalizar .nd-v4-step-content{padding:11px!important}#modalFinalizar .nd-v4-step-content .nd-v4-payment-grid{gap:5px!important}#modalFinalizar .nd-v4-step-content .nd-v4-pay{padding:8px 4px!important;font-size:12px!important}}
+</style>
+<script id="nd-r55-one-screen-js">
+(function(){'use strict';
+function simplify(){
+ const modal=document.getElementById('modalFinalizar');
+ const panel=modal&&modal.querySelector('.painel-finalizar'); if(!panel||panel.dataset.ndR55==='1')return;
+ panel.dataset.ndR55='1';
+ panel.querySelectorAll('.nd-v4-step-content').forEach(el=>{el.classList.add('active');el.style.setProperty('display','block','important')});
+ panel.querySelector('.nd-v4-stepbar')?.remove();
+ panel.querySelectorAll('button[onclick^="ndNext"],button[onclick^="ndBack"]').forEach(b=>b.remove());
+ const streetLabel=Array.from(panel.querySelectorAll('label')).find(l=>/pesquise sua rua/i.test(l.textContent));
+ if(streetLabel){let help=panel.querySelector('.nd-r55-street-help');if(!help){help=document.createElement('div');help.className='nd-r55-street-help';help.textContent='1. Digite o nome da rua.  2. Escolha na lista.  3. Informe o número.';streetLabel.insertAdjacentElement('afterend',help)}}
+ const name=document.getElementById('nomeModal');if(name)name.placeholder='Digite seu nome';
+ const phone=document.getElementById('telefoneModal');if(phone)phone.placeholder='WhatsApp com DDD';
+ const search=document.getElementById('ruaBuscaModal');if(search)search.placeholder='Ex.: Bananeiras';
+ const num=document.getElementById('numeroModal');if(num)num.placeholder='Número da casa';
+ const comp=document.getElementById('complementoModal');if(comp)comp.placeholder='Apto, bloco ou referência (opcional)';
+ const pay=panel.querySelector('[data-content="3"]');
+ if(pay){const lbl=Array.from(pay.querySelectorAll('label')).find(l=>/observação/i.test(l.textContent));if(lbl){const t=pay.querySelector('#observacaoModal');if(t)t.placeholder='Ex.: sem cebola ou referência para entrega (opcional)'}}
+ const summary=panel.querySelector('[data-content="4"]');
+ if(summary){const note=summary.querySelector('.nd-v4-note');if(note)note.textContent='Confira o total e toque no botão abaixo. Seu pedido será enviado pelo WhatsApp da ND BURGS.';
+  const submit=summary.querySelector('button[onclick*="finalizarPedidoModal"]');if(submit){submit.classList.add('nd-r55-submit');submit.textContent='CONFIRMAR PEDIDO PELO WHATSAPP';summary.appendChild(submit)}
+  summary.querySelectorAll('button[onclick^="ndBack"]').forEach(b=>b.remove());
+ }
+ // Reposiciona o resumo para o fim e atualiza total sem precisar avançar etapas.
+ try{if(typeof window.ndSummary==='function')window.ndSummary()}catch(e){}
+}
+const original=window.buildCheckout;
+if(typeof original==='function'){
+ window.buildCheckout=function(){original.apply(this,arguments);const modal=document.getElementById('modalFinalizar');if(modal){modal.querySelector('.painel-finalizar')?.removeAttribute('data-nd-r55');}simplify();setTimeout(simplify,0)};
+}
+function start(){simplify();const modal=document.getElementById('modalFinalizar');if(modal){new MutationObserver(()=>{if(modal.classList.contains('ativo')||modal.style.display!=='none')simplify()}).observe(modal,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
+ modal.addEventListener('input',()=>{try{if(typeof window.ndSummary==='function')window.ndSummary()}catch(e){}},true);
+ modal.addEventListener('change',()=>{try{if(typeof window.ndSummary==='function')window.ndSummary()}catch(e){}},true);
+ }}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+
 </body>
 </html>
 
@@ -12607,3 +12666,50 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+
+<!-- ND BURGS R54 — CHECKOUT SUPER SIMPLES PARA O CLIENTE -->
+<style id="nd-r54-simple-checkout-css">
+#modalFinalizar .nd-r54-guide{display:flex;gap:10px;align-items:flex-start;margin:10px 0 14px;padding:13px;border:1px solid #38383d;border-radius:13px;background:#171719;color:#f4f4f4;font-size:13px;line-height:1.5}
+#modalFinalizar .nd-r54-guide .nd-r54-num{flex:0 0 28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#ff6500;color:#fff;font-weight:1000}
+#modalFinalizar .nd-r54-label{display:block;margin:13px 0 7px!important;font-size:15px!important;font-weight:900!important;color:#fff!important}
+#modalFinalizar #ruaBuscaModal{padding-right:12px!important}
+#modalFinalizar #numeroModal{font-size:18px!important;font-weight:800!important}
+#modalFinalizar #complementoModal{font-size:16px!important}
+#modalFinalizar .nd-v4-stepbar{gap:5px!important}
+#modalFinalizar .nd-v4-step{font-size:10px!important;padding:8px 4px!important}
+#modalFinalizar .nd-v4-next{min-height:52px!important;font-size:15px!important}
+#modalFinalizar .nd-r53-street-help{background:#171719!important}
+#modalFinalizar .nd-r53-street-option{min-height:48px!important;font-size:14px!important}
+@media(max-width:480px){#modalFinalizar .nd-r54-guide{font-size:12px}#modalFinalizar .nd-r54-label{font-size:14px!important}#modalFinalizar .nd-v4-step{font-size:9px!important}}
+</style>
+<script id="nd-r54-simple-checkout-js">
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+function guide(step,html){if(!step)return;let g=step.querySelector('.nd-r54-guide');if(!g){g=document.createElement('div');g.className='nd-r54-guide';step.insertBefore(g,step.firstChild)}g.innerHTML=html}
+function enhance(){
+ const modal=$('#modalFinalizar');if(!modal)return;
+ const data=$('#modalFinalizar .nd-v4-step-content[data-content="1"]');
+ const delivery=$('#modalFinalizar .nd-v4-step-content[data-content="2"]');
+ const payment=$('#modalFinalizar .nd-v4-step-content[data-content="3"]');
+ const confirm=$('#modalFinalizar .nd-v4-step-content[data-content="4"]');
+ guide(data,'<span class="nd-r54-num">1</span><span><b>Primeiro, seus dados</b><br>Digite seu nome e WhatsApp com DDD. Depois toque em <b>CONTINUAR</b>.</span>');
+ guide(delivery,'<span class="nd-r54-num">2</span><span><b>Como você vai receber?</b><br>Escolha <b>DELIVERY</b> para receber em casa ou <b>RETIRADA</b> para buscar seu pedido.</span>');
+ guide(payment,'<span class="nd-r54-num">3</span><span><b>Escolha como pagar</b><br>Toque na forma de pagamento que você vai usar.</span>');
+ guide(confirm,'<span class="nd-r54-num">4</span><span><b>Confira antes de enviar</b><br>Veja o endereço, os itens e o total. Se estiver tudo certo, envie o pedido pelo WhatsApp.</span>');
+ const search=$('#ruaBuscaModal'),select=$('#ruaModal'),num=$('#numeroModal'),comp=$('#complementoModal');
+ if(search){search.placeholder='Ex.: Bananeiras, Brasil, Lyons';search.setAttribute('aria-label','Digite o nome da sua rua e escolha uma opção');}
+ if(select){select.setAttribute('aria-label','Rua selecionada');select.style.display='none';}
+ if(num){num.placeholder='Ex.: 180';num.setAttribute('inputmode','numeric');num.setAttribute('aria-label','Número da casa ou prédio');const l=delivery&&Array.from(delivery.querySelectorAll('label')).find(x=>x.textContent.trim().toLowerCase()==='número');if(l){l.textContent='Qual é o número da casa ou prédio?';l.classList.add('nd-r54-label')}}
+ if(comp){comp.placeholder='Apartamento, bloco, casa dos fundos (opcional)';comp.setAttribute('aria-label','Complemento opcional do endereço')}
+ if(delivery){Array.from(delivery.querySelectorAll('label')).forEach(l=>{let t=l.textContent.trim().toLowerCase();if(t.includes('pesquise sua rua')){l.textContent='Qual é sua rua ou avenida?';l.classList.add('nd-r54-label')}if(t.includes('complemento')){l.textContent='Complemento (opcional)';l.classList.add('nd-r54-label')}})}
+ const help=delivery&&delivery.querySelector('.nd-r53-street-help');if(help)help.innerHTML='<b>É só fazer assim:</b><br>① Digite algumas palavras do nome da rua.<br>② Toque na rua certa que aparecer na lista.<br>③ Digite o número da casa. O complemento é opcional.';
+ const oldBuild=window.buildCheckout;
+ if(typeof oldBuild==='function'&&!oldBuild.__ndR54){window.buildCheckout=function(){const result=oldBuild.apply(this,arguments);setTimeout(enhance,50);return result};window.buildCheckout.__ndR54=true}
+}
+function focusStep(){const step=$('#modalFinalizar .nd-v4-step-content.active');if(!step)return;const n=step.dataset.content;if(n==='2'&&$('#tipoPedidoModal')?.value!=='RETIRADA'){const s=$('#ruaBuscaModal');if(s&&!$('#ruaModal')?.value)setTimeout(()=>s.focus({preventScroll:true}),180)}}
+function boot(){enhance();const modal=$('#modalFinalizar');if(modal){new MutationObserver(()=>{enhance();focusStep()}).observe(modal,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});modal.addEventListener('click',e=>{if(e.target.closest('.nd-v4-next'))setTimeout(focusStep,80)})}document.addEventListener('nd:checkout-open',()=>setTimeout(focusStep,150));}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
