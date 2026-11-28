@@ -148,7 +148,7 @@ begin
   select * into v_session from public.game_sessions
   where id=p_session_id and user_id=p_user_id for update;
   if not found or v_session.status <> 'started' then raise exception 'Partida inválida ou já encerrada.'; end if;
-  if v_session.started_at > now()-interval '3 minutes' or v_session.started_at < now()-interval '4 minutes' then
+  if v_session.started_at > now()-interval '45 seconds' or v_session.started_at < now()-interval '4 minutes' then
     raise exception 'Tempo de partida inválido.';
   end if;
   if p_score < 0 or p_score > 1200 or p_caught < 0 or p_caught > 120 then
