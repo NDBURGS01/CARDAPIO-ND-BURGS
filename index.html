@@ -12374,10 +12374,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   return true;
  }
  function hideFirstGate(){const g=$('#ndFirstVisitGate');if(g){g.classList.remove('show');g.style.display='none';g.setAttribute('aria-hidden','true')}try{document.body.style.overflow=''}catch(e){}}
- function updateCheckoutChoice(){const box=$('#ndR49CheckoutChoice');if(!box)return;const a=readAddr(),delivery=storage('nd26_tipo')!=='RETIRADA'&&storage('nd17_tipo')!=='RETIRADA';box.querySelectorAll('[data-r49-type]').forEach(b=>b.classList.toggle('active',b.dataset.r49Type===(delivery?'ENTREGA':'RETIRADA')));const desc=box.querySelector('[data-r49-desc]');if(desc){desc.textContent=delivery?(a.street?(a.street+(a.number?', Nº '+a.number:'')+(a.complement?' — '+a.complement:'' )+' | Taxa: '+(Number(fees()[a.street]||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})):'Você ainda não salvou um endereço de entrega. Use o GPS ou informe a rua no topo.'):'Você escolheu retirar na loja. Não será cobrada taxa de entrega.';}const type=$('#tipoPedidoModal');if(type)type.value=delivery?'ENTREGA':'RETIRADA';const addrArea=$('#enderecoAreaModal');if(addrArea)addrArea.style.display=delivery?'block':'none';const mini=$('#ndV4SingleAddressSummary');if(mini){mini.style.display=delivery?'block':'none';if(delivery)mini.innerHTML='<strong>🛵 ENDEREÇO DE ENTREGA</strong><br>'+(a.street||'Endereço ainda não selecionado')+(a.number?', Nº '+a.number:'')+(a.complement?'<br>📍 '+a.complement:'')+'<br><small>Taxa: '+(Number(fees()[a.street]||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</small>';}}
+ function updateCheckoutChoice(){const box=$('#ndR49CheckoutChoice');if(!box)return;const a=readAddr(),delivery=storage('nd26_tipo')!=='RETIRADA'&&storage('nd17_tipo')!=='RETIRADA';box.querySelectorAll('[data-r49-type]').forEach(b=>b.classList.toggle('active',b.dataset.r49Type===(delivery?'ENTREGA':'RETIRADA')));const desc=box.querySelector('[data-r49-desc]');if(desc){desc.textContent=delivery?(a.street?(a.street+(a.number?', Nº '+a.number:'')+(a.complement?' — '+a.complement:'' )+' | Taxa: '+(Number(fees()[a.street]||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})):'Selecione sua rua e informe o número aqui no checkout, ou use o GPS abaixo para compartilhar o ponto de entrega.'):'Você escolheu retirar na loja. Não será cobrada taxa de entrega.';}const type=$('#tipoPedidoModal');if(type)type.value=delivery?'ENTREGA':'RETIRADA';const addrArea=$('#enderecoAreaModal');if(addrArea)addrArea.style.display=delivery?'block':'none';const mini=$('#ndV4SingleAddressSummary');if(mini){mini.style.display=delivery?'block':'none';if(delivery)mini.innerHTML='<strong>🛵 ENDEREÇO DE ENTREGA</strong><br>'+(a.street||'Endereço ainda não selecionado')+(a.number?', Nº '+a.number:'')+(a.complement?'<br>📍 '+a.complement:'')+'<br><small>Taxa: '+(Number(fees()[a.street]||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</small>';}}
  function ensureCheckoutChoice(){const step=$('#modalFinalizar .nd-v4-step-content[data-content="2"]');if(!step)return false;let box=$('#ndR49CheckoutChoice');if(!box){box=document.createElement('div');box.id='ndR49CheckoutChoice';box.className='nd-r49-checkout-choice';box.innerHTML='<div class="nd-r49-choice-title">Como deseja receber seu pedido?</div><div class="nd-r49-choice-row"><button type="button" class="nd-r49-choice" data-r49-type="ENTREGA">🛵 DELIVERY</button><button type="button" class="nd-r49-choice" data-r49-type="RETIRADA">🏪 RETIRADA</button></div><div class="nd-r49-choice-desc" data-r49-desc></div>';
    const sum=$('#ndV4SingleAddressSummary');if(sum)sum.insertAdjacentElement('beforebegin',box);else step.insertBefore(box,step.firstChild);
-   box.querySelectorAll('[data-r49-type]').forEach(b=>b.addEventListener('click',()=>{const type=b.dataset.r49Type;const a=readAddr();saveAddr(type,a.street,a.number,a.complement);const t=$('#tipoPedidoModal');if(t){t.value=type;t.dispatchEvent(new Event('change',{bubbles:true}))}if(type==='ENTREGA'&&!a.street){const st=$('#ndTopStreet');if(st)st.focus()}updateCheckoutChoice();try{if(typeof window.atualizarResumoFinalizarModal==='function')window.atualizarResumoFinalizarModal()}catch(e){}}));
+   box.querySelectorAll('[data-r49-type]').forEach(b=>b.addEventListener('click',()=>{const type=b.dataset.r49Type;const a=readAddr();saveAddr(type,a.street,a.number,a.complement);const t=$('#tipoPedidoModal');if(t){t.value=type;t.dispatchEvent(new Event('change',{bubbles:true}))}if(type==='ENTREGA'&&!a.street){const st=$('#ruaModal');if(st)st.focus()}updateCheckoutChoice();try{if(typeof window.atualizarResumoFinalizarModal==='function')window.atualizarResumoFinalizarModal()}catch(e){}}));
    const gpsHost=document.createElement('div');gpsHost.id='ndR49CheckoutGps';box.appendChild(gpsHost);addGpsButton(gpsHost,'modal');
   }
   updateCheckoutChoice();return true;
@@ -12401,68 +12401,130 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <!-- ND BURGS R50 — ENDEREÇO SOMENTE NO CHECKOUT -->
-<style id="nd-r50-address-only-checkout">
-/* O cliente NÃO escolhe endereço na tela principal. */
-#ndTopAddress,
-#ndFirstVisitGate,
-#ndFirstVisitGate.show{
-  display:none!important;
-}
-/* Evita qualquer espaço residual do bloco antigo. */
-body:has(#ndTopAddress){ }
-#ndR49CheckoutChoice{margin-bottom:12px}
-.nd-r50-address-title{font-size:16px;font-weight:1000;margin:12px 0 8px;color:#fff}
-.nd-r50-address-help{font-size:12px;line-height:1.45;color:#bdbdbd;margin-bottom:10px}
-.nd-r50-change-address{width:100%;min-height:44px;border:1px solid #555;border-radius:10px;background:#202020;color:#fff;font-weight:900;cursor:pointer;margin-top:8px}
+<style id="nd-r50-address-checkout-only">
+/* Remove os seletores de endereço da página principal; a escolha fica na finalização. */
+#ndTopAddress,#ndFirstVisitGate,#ndFirstGate,#ndFirstAddressGate{display:none!important;visibility:hidden!important;pointer-events:none!important}
+/* A área de endereço só aparece quando o cliente escolhe DELIVERY dentro do checkout. */
+#modalFinalizar.nd-r50-delivery-mode #enderecoAreaModal{display:block!important;visibility:visible!important}
+#modalFinalizar:not(.nd-r50-delivery-mode) #enderecoAreaModal{display:none!important}
+#modalFinalizar #ndEnderecoAjuda{display:block;margin-top:12px}
+#modalFinalizar #ruaModal,#modalFinalizar #numeroModal,#modalFinalizar #complementoModal{width:100%;box-sizing:border-box;font-size:16px;min-height:46px}
 </style>
-<script id="nd-r50-address-only-checkout">
+<script id="nd-r50-address-checkout-only-js">
 (function(){
 'use strict';
 const $=s=>document.querySelector(s);
-function removeMainAddress(){
-  ['#ndTopAddress','#ndFirstVisitGate','#ndEnderecoAjuda'].forEach(sel=>{
-    document.querySelectorAll(sel).forEach(el=>el.remove());
-  });
-  try{document.body.style.overflow='';}catch(e){}
+function sync(){
+ const modal=$('#modalFinalizar');if(!modal)return;
+ const active=modal.classList.contains('ativo');
+ const type=$('#tipoPedidoModal');
+ const delivery=!type||type.value!=='RETIRADA';
+ modal.classList.toggle('nd-r50-delivery-mode',active&&delivery);
+ const top=$('#ndTopAddress');if(top){top.style.display='none';top.setAttribute('aria-hidden','true')}
+ const gate=$('#ndFirstVisitGate');if(gate){gate.classList.remove('show');gate.style.display='none';gate.setAttribute('aria-hidden','true')}
 }
-function improveCheckoutAddress(){
-  const step=$('#modalFinalizar .nd-v4-step-content[data-content="2"]');
-  if(!step)return;
-  const area=$('#enderecoAreaModal');
-  if(!area)return;
-  if(!$('#ndR50AddressTitle')){
-    const title=document.createElement('div');
-    title.id='ndR50AddressTitle';
-    title.className='nd-r50-address-title';
-    title.textContent='📍 ESCOLHA O ENDEREÇO DE ENTREGA';
-    const help=document.createElement('div');
-    help.className='nd-r50-address-help';
-    help.textContent='Seu endereço será escolhido aqui, durante o checkout. Você pode selecionar sua rua, informar o número ou usar sua localização atual para conferir o ponto no mapa.';
-    area.parentNode.insertBefore(title,area);
-    area.parentNode.insertBefore(help,area);
-  }
-  const gps=document.querySelector('#ndR49CheckoutGps');
-  if(gps){
-    gps.style.display='block';
-    gps.style.marginTop='10px';
-  }
-  const old=document.querySelector('#ndV4SingleAddressSummary');
-  if(old) old.querySelectorAll('button').forEach(b=>b.remove());
+function init(){
+ sync();
+ document.addEventListener('click',e=>{
+  const choice=e.target.closest('[data-r49-type]');
+  if(choice){setTimeout(()=>{sync();if(choice.dataset.r49Type==='ENTREGA'){const street=$('#ruaModal');if(street)street.focus()}},50)}
+ });
+ const modal=$('#modalFinalizar');
+ if(modal){
+  modal.addEventListener('change',e=>{if(e.target&&e.target.id==='tipoPedidoModal')setTimeout(sync,0)});
+  new MutationObserver(sync).observe(modal,{attributes:true,attributeFilter:['class']});
+ }
+ const type=$('#tipoPedidoModal');if(type)type.addEventListener('change',sync);
+ const street=$('#ruaModal');if(street)street.addEventListener('change',()=>{
+  try{if(typeof window.calcularTaxaModal==='function')window.calcularTaxaModal()}catch(e){}
+  try{if(typeof window.atualizarResumoFinalizarModal==='function')window.atualizarResumoFinalizarModal()}catch(e){}
+ });
+ const number=$('#numeroModal');if(number)number.addEventListener('input',()=>{try{if(typeof window.atualizarResumoFinalizarModal==='function')window.atualizarResumoFinalizarModal()}catch(e){}});
+ setInterval(sync,700);
 }
-function boot(){
-  removeMainAddress();
-  improveCheckoutAddress();
-  let n=0;
-  const timer=setInterval(()=>{
-    removeMainAddress();
-    improveCheckoutAddress();
-    n++; if(n>40)clearInterval(timer);
-  },250);
-  const mo=new MutationObserver(()=>{removeMainAddress();improveCheckoutAddress();});
-  mo.observe(document.body,{childList:true,subtree:true});
-  setTimeout(()=>mo.disconnect(),15000);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+<!-- ND BURGS R51 — ESCOLHA DO ENDEREÇO SOMENTE NO CHECKOUT -->
+<style id="nd-r51-address-only-checkout">
+/* Tela principal: remove os campos/seletores de endereço antigos e não deixa espaço vazio. */
+#ndTopAddress,
+#ndFirstVisitGate,
+#ndFirstGate,
+#ndFirstAddressGate,
+#enderecoArea,
+#ruaBusca,
+.address-search-wrap:has(#ruaBusca) {
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  height:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+/* No checkout, o endereço aparece apenas quando DELIVERY estiver selecionado. */
+#modalFinalizar.nd-r50-delivery-mode #enderecoAreaModal,
+#modalFinalizar.nd-r51-delivery-mode #enderecoAreaModal {
+  display:block!important;
+  visibility:visible!important;
+}
+#modalFinalizar:not(.nd-r51-delivery-mode) #enderecoAreaModal {
+  display:none!important;
+}
+#modalFinalizar #ruaModal,
+#modalFinalizar #numeroModal,
+#modalFinalizar #complementoModal {
+  width:100%!important;
+  box-sizing:border-box!important;
+  min-height:46px!important;
+  font-size:16px!important;
+}
+</style>
+<script id="nd-r51-address-only-checkout-js">
+(function(){
+ 'use strict';
+ const $=s=>document.querySelector(s);
+ function hideMainAddress(){
+   ['#ndTopAddress','#ndFirstVisitGate','#ndFirstGate','#ndFirstAddressGate','#enderecoArea'].forEach(sel=>{
+     document.querySelectorAll(sel).forEach(el=>{
+       el.style.setProperty('display','none','important');
+       el.style.setProperty('visibility','hidden','important');
+       el.setAttribute('aria-hidden','true');
+     });
+   });
+   const search=$('#ruaBusca');
+   if(search){const wrap=search.closest('.address-search-wrap');if(wrap)wrap.style.setProperty('display','none','important');}
+ }
+ function syncCheckout(){
+   const modal=$('#modalFinalizar');
+   if(!modal)return;
+   const open=modal.classList.contains('ativo');
+   const type=$('#tipoPedidoModal');
+   const delivery=!type||type.value!=='RETIRADA';
+   modal.classList.toggle('nd-r51-delivery-mode',open&&delivery);
+   const area=$('#enderecoAreaModal');
+   if(area){
+     if(open&&delivery){area.style.removeProperty('display');area.style.setProperty('display','block','important');}
+     else area.style.setProperty('display','none','important');
+   }
+ }
+ function init(){
+   hideMainAddress();
+   syncCheckout();
+   document.addEventListener('click',()=>{hideMainAddress();setTimeout(syncCheckout,30)});
+   document.addEventListener('change',e=>{
+     if(e.target&&e.target.id==='tipoPedidoModal')setTimeout(syncCheckout,0);
+   });
+   const modal=$('#modalFinalizar');
+   if(modal)new MutationObserver(syncCheckout).observe(modal,{attributes:true,attributeFilter:['class']});
+   const type=$('#tipoPedidoModal');if(type)type.addEventListener('change',syncCheckout);
+   /* Reaplica após os scripts antigos tentarem reexibir o formulário principal. */
+   let tries=0;const timer=setInterval(()=>{hideMainAddress();syncCheckout();if(++tries>=40)clearInterval(timer)},400);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 
