@@ -12359,7 +12359,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 
-<!-- ND BURGS R55: CHECKOUT EM UMA ÚNICA TELA, FLUXO RÁPIDO -->
+<!-- ND BURGS R56: CHECKOUT EM UMA ÚNICA TELA, FLUXO RÁPIDO -->
 <style id="nd-r55-one-screen-css">
 #modalFinalizar .painel-finalizar{max-height:94dvh!important;overflow-y:auto!important;padding-bottom:18px!important}
 #modalFinalizar .nd-v4-stepbar{display:none!important}
@@ -12383,8 +12383,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){'use strict';
 function simplify(){
  const modal=document.getElementById('modalFinalizar');
- const panel=modal&&modal.querySelector('.painel-finalizar'); if(!panel||panel.dataset.ndR55==='1')return;
- panel.dataset.ndR55='1';
+ const panel=modal&&modal.querySelector('.painel-finalizar'); if(!panel||panel.dataset.ndR56==='1')return;
+ panel.dataset.ndR56='1';
  panel.querySelectorAll('.nd-v4-step-content').forEach(el=>{el.classList.add('active');el.style.setProperty('display','block','important')});
  panel.querySelector('.nd-v4-stepbar')?.remove();
  panel.querySelectorAll('button[onclick^="ndNext"],button[onclick^="ndBack"]').forEach(b=>b.remove());
@@ -12687,7 +12687,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
 'use strict';
 const $=s=>document.querySelector(s);
-function guide(step,html){if(!step)return;let g=step.querySelector('.nd-r54-guide');if(!g){g=document.createElement('div');g.className='nd-r54-guide';step.insertBefore(g,step.firstChild)}g.innerHTML=html}
+function guide(step,html){if(!step)return;let g=step.querySelector('.nd-r54-guide');if(!g){g=document.createElement('div');g.className='nd-r54-guide';step.insertBefore(g,step.firstChild)}if(g.innerHTML!==html)g.innerHTML=html}
 function enhance(){
  const modal=$('#modalFinalizar');if(!modal)return;
  const data=$('#modalFinalizar .nd-v4-step-content[data-content="1"]');
@@ -12709,7 +12709,7 @@ function enhance(){
  if(typeof oldBuild==='function'&&!oldBuild.__ndR54){window.buildCheckout=function(){const result=oldBuild.apply(this,arguments);setTimeout(enhance,50);return result};window.buildCheckout.__ndR54=true}
 }
 function focusStep(){const step=$('#modalFinalizar .nd-v4-step-content.active');if(!step)return;const n=step.dataset.content;if(n==='2'&&$('#tipoPedidoModal')?.value!=='RETIRADA'){const s=$('#ruaBuscaModal');if(s&&!$('#ruaModal')?.value)setTimeout(()=>s.focus({preventScroll:true}),180)}}
-function boot(){enhance();const modal=$('#modalFinalizar');if(modal){new MutationObserver(()=>{enhance();focusStep()}).observe(modal,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});modal.addEventListener('click',e=>{if(e.target.closest('.nd-v4-next'))setTimeout(focusStep,80)})}document.addEventListener('nd:checkout-open',()=>setTimeout(focusStep,150));}
+function boot(){enhance();const modal=$('#modalFinalizar');if(modal){new MutationObserver(()=>{enhance()}).observe(modal,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});modal.addEventListener('click',e=>{if(e.target.closest('.nd-v4-next'))setTimeout(focusStep,80)})}document.addEventListener('nd:checkout-open',()=>setTimeout(focusStep,150));}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
