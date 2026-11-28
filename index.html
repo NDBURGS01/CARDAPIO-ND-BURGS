@@ -1,13 +1,13 @@
 <html lang="pt-BR">
 <head>
 <!-- ND BURGS: controle de versão + proteção contra layout antigo no primeiro paint -->
-<meta name="nd-site-version" content="20261128-R52">
+<meta name="nd-site-version" content="20261128-R51">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
 (function () {
-  const ND_SITE_VERSION = "20261128-R52";
+  const ND_SITE_VERSION = "20261128-R51";
   const KEY = "ndburgs_site_version";
   const RESET_KEY = "ndburgs_cache_reset_20261128_R48";
   document.documentElement.classList.add("nd-booting");
@@ -57,12 +57,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ND BURGS">
-<link rel="manifest" href="./manifest.json?v=20261128-R52">
-<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R52">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R52">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R52">
-<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R52">
-<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R52">
+<link rel="manifest" href="./manifest.json?v=20261128-R51">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png?v=20261128-R51">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261128-R51">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20261128-R51">
+<link rel="icon" type="image/png" href="./favicon.png?v=20261128-R51">
+<link rel="shortcut icon" type="image/png" href="./favicon.png?v=20261128-R51">
 
 <title>ND BURGS | Faça seu pedido</title>
 
@@ -11805,7 +11805,7 @@ if('serviceWorker' in navigator){
         return;
       }
     }catch(_){}
-    navigator.serviceWorker.register('./sw.js?v=20261128-R52',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
+    navigator.serviceWorker.register('./sw.js?v=20261128-R51',{scope:'./'}).catch(function(err){console.warn('ND BURGS PWA:',err)});
   },{once:true});
 }
 
@@ -12320,11 +12320,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #ndGameCoupons .ndg-stat strong{display:block;font-size:20px;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
 #ndGameCoupons .ndg-stage{position:relative;margin:0 12px;border:1px solid #ffffff1c;border-radius:18px;overflow:hidden;background:#080a12;box-shadow:inset 0 0 40px #000,0 14px 35px #0008}
 #ndGameCoupons canvas{display:block;width:100%;height:clamp(340px,62vw,490px);touch-action:pan-y}
-#ndGameCoupons .ndg-stage{min-height:clamp(340px,62vw,490px);background:#080a12}
-#ndGameCoupons #ndgCanvas{position:relative;z-index:1}
-#ndGameCoupons .ndg-stage canvas.ndg-three-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
-#ndGameCoupons .ndg-hud{z-index:4}
-#ndGameCoupons .ndg-overlay{z-index:5}
 #ndGameCoupons .ndg-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;background:linear-gradient(180deg,#08091066,#080910d9);backdrop-filter:blur(5px)}
 #ndGameCoupons .ndg-overlay[hidden]{display:none}
 #ndGameCoupons .ndg-overlay-card{max-width:390px}
@@ -12392,7 +12387,7 @@ function build(){
  const container=$('.container')||document.body;
  root=document.createElement('section');root.id='ndGameCoupons';
  root.innerHTML=`<div class="ndg-shell">
- <div class="ndg-hero"><div class="ndg-kicker">ND BURGS · 3D OPEN WORLD EXPERIENCE</div><div class="ndg-title">JOGUE E GANHE CUPONS</div><p class="ndg-sub">Entre em uma cidade 3D, corra em terceira pessoa, desvie do trânsito e colete BURGS dourados. Cada fase fica mais rápida.</p></div>
+ <div class="ndg-hero"><div class="ndg-kicker">ND BURGS ORIGINAL GAME · OPEN-CITY CHALLENGE</div><div class="ndg-title">JOGUE E GANHE CUPONS</div><p class="ndg-sub">Explore a cidade ND, desvie do trânsito, colete BURGS dourados e desbloqueie recompensas. Sua corrida começa aqui.</p></div>
  <div class="ndg-stats"><div class="ndg-stat"><span>PONTOS DA CORRIDA</span><strong id="ndgScore">0</strong></div><div class="ndg-stat"><span>RECORDE</span><strong id="ndgHigh">0</strong></div><div class="ndg-stat"><span>BURGS COLETADOS</span><strong id="ndgBurgs">0</strong></div></div>
  <div class="ndg-stage"><canvas id="ndgCanvas" aria-label="Jogo Burgs Run 3D"></canvas><div class="ndg-hud"><span id="ndgPhase">FASE 1 · RUA DA BURGS</span><span id="ndgSpeed">VELOCIDADE 1X</span></div>
  <div class="ndg-overlay" id="ndgOverlay"><div class="ndg-overlay-card"><h3 id="ndgOverlayTitle">SUA CORRIDA COMEÇA AGORA</h3><p id="ndgOverlayText">3 FAIXAS. OBSTÁCULOS REAIS. 5 CENÁRIOS.
@@ -12418,7 +12413,7 @@ Deslize ou use as setas para mudar de faixa. Pule para escapar. Pegue os BURGS d
  document.addEventListener('keydown',key);
  draw(0);
 }
-function resize(){if(!canvas)return;const r=canvas.getBoundingClientRect();W=Math.max(320,r.width);H=Math.max(280,r.height);if(ctx){dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}resize3D();draw(performance.now())}
+function resize(){if(!canvas)return;const r=canvas.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,2);W=Math.max(320,r.width);H=Math.max(280,r.height);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw(0)}
 function phaseInfo(){if(score<900)return {n:1,name:'RUA DA BURGS',sky:'#12172b',road:'#292a31'};if(score<2100)return {n:2,name:'BAIRRO NEON',sky:'#20122b',road:'#25232e'};if(score<3600)return {n:3,name:'ZONA INDUSTRIAL',sky:'#2b1714',road:'#292326'};if(score<5200)return {n:4,name:'AVENIDA TURBO',sky:'#111f29',road:'#222a30'};return {n:5,name:'DESAFIO FINAL ND',sky:'#2a160e',road:'#242124'}}
 function laneX(l,z){const horizon=H*.30;const bottom=H*.97;const y=horizon+(bottom-horizon)*z;const roadW= W*(.16+.72*z);const center=W/2;return center+(l-1)*roadW*.29}
 function draw(t){
@@ -12498,7 +12493,7 @@ function updateHud(){if(!root)return;$('#ndgScore',root).textContent=moneyPoints
 function move(d){if(!root)return;lane=Math.max(0,Math.min(2,lane+d))}
 function jump(){if(running&&playerY<=0)playerY=1}
 function key(e){if(!root||!root.classList.contains('nd-game-open'))return;if(['ArrowLeft','a','A'].includes(e.key)){e.preventDefault();move(-1)}if(['ArrowRight','d','D'].includes(e.key)){e.preventDefault();move(1)}if(['ArrowUp',' ','w','W'].includes(e.key)){e.preventDefault();jump()}if(e.key==='Enter'&&!running)start()}
-function start(){if(running)return;if(!renderer3D){loadThree();$('#ndgOverlayText',root).textContent='Carregando cidade 3D… se for a primeira vez, aguarde alguns segundos e toque novamente.';return}score=0;lane=1;playerY=0;speed=.34;spawn=.4;objects=[];obj3D.forEach(m=>scene3D.remove(m));obj3D.clear();distance=0;collected=0;runId++;running=true;last=performance.now();$('#ndgOverlay',root).hidden=true;$('#ndgCoupon',root).classList.remove('show');cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function start(){if(running)return;score=0;lane=1;playerY=0;speed=.34;spawn=.4;objects=[];distance=0;collected=0;runId++;running=true;last=performance.now();$('#ndgOverlay',root).hidden=true;$('#ndgCoupon',root).classList.remove('show');cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
 function loop(now){if(!running)return;const dt=Math.min(40,now-last);last=now;const factor=dt/16.67;distance+=dt;score+=dt*.26*(1+score/9000*.25);speed=.30+Math.min(.70,score/6500*.70);spawn-=dt/1000;
  if(spawn<=0){const l=Math.floor(Math.random()*3),roll=Math.random();objects.push({lane:l,z:0,type:roll<.27?'burger':roll<.58?'barrier':roll<.80?'crate':'train'});spawn=Math.max(.38,1.05-score/9000)+(Math.random()*.28)}
  objects.forEach(o=>o.z+=speed*dt/1000);
@@ -12510,27 +12505,6 @@ function unlockCoupons(points){let list=getCoupons(),newCoupon=null;const tiers=
 async function copyCoupon(){const code=$('#ndgCouponCode',root)?.textContent||'';if(!code)return;try{await navigator.clipboard.writeText(code);$('#ndgCopy',root).textContent='COPIADO!'}catch(e){const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();$('#ndgCopy',root).textContent='COPIADO!'}}
 function addNavButton(nav){if(!nav||nav.querySelector('[data-ndg-nav]'))return;const b=document.createElement('button');b.type='button';b.className='categoria-btn ndg-nav-btn';b.dataset.ndgNav='1';b.textContent='🎮 JOGUE E GANHE CUPONS';b.addEventListener('click',openGame);nav.appendChild(b)}
 function openGame(){if(!root)build();root.classList.add('nd-game-open');root.scrollIntoView({behavior:'smooth',block:'start'});resize();draw(performance.now())}
-// Real-time WebGL scene: third-person 3D city, player, traffic and collectibles.
-let THREE=null,renderer3D,scene3D,camera3D,player3D,world3D=[],obj3D=new Map(),roadMarks=[],last3D=0,cityLights=[],playerTargetX=0;
-function mat(color,roughness=.72,metalness=.05,emissive=0x000000){return new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity:.45})}
-function box3(parent,w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);return m}
-function makePlayer(){const g=new THREE.Group();const suit=mat(0x15171b,.42,.2),gold=mat(0xffb51b,.3,.35,0xff8700),skinMat=mat(0xd98d4d),shoe=mat(0xeeeeee,.35),green=mat(0x31b95e);box3(g,.72,.95,.42,suit,0,1.28,0);box3(g,.53,.17,.05,gold,0,1.42,-.225);box3(g,.2,.11,.03,mat(0x101010),0,1.42,-.26);box3(g,.24,.78,.25,suit,-.22,.45,0);box3(g,.24,.78,.25,suit,.22,.45,0);box3(g,.30,.17,.43,shoe,-.22,.08,-.04);box3(g,.30,.17,.43,shoe,.22,.08,-.04);box3(g,.19,.65,.22,skinMat,-.48,1.25,0);box3(g,.19,.65,.22,skinMat,.48,1.25,0);const head=new THREE.Group();g.add(head);const bun=new THREE.Mesh(new THREE.SphereGeometry(.46,28,20),mat(0xe6a342,.48));bun.scale.set(1, .78,.85);bun.position.y=2.18;head.add(bun);box3(head,.82,.14,.68,mat(0x3fae4c),0,2.05,0);box3(head,.86,.12,.7,mat(0xf2c15a),0,1.98,0);box3(head,.56,.13,.46,mat(0x6b3218),0,1.89,0);const cap=box3(head,.88,.13,.78,mat(0x111216,.3,.3),0,2.48,0);box3(head,.35,.04,.5,gold,0,2.4,-.18);g.userData.head=head;g.userData.legs=[g.children[2],g.children[3]];scene3D.add(g);return g}
-function addBuilding(x,z,w,h,d,color){const b=new THREE.Group();box3(b,w,h,d,mat(color,.9),0,h/2,0);for(let y=1.5;y<h-1;y+=1.65)for(let xx=-w/2+.55;xx<w/2-.25;xx+=.9){const win=box3(b,.35,.55,.035,mat(Math.random()>.34?0xffbd4a:0x2c4a63,.35,.1,Math.random()>.34?0x6c3000:0x001522),xx,y,-d/2-.025);cityLights.push(win)}b.position.set(x,0,z);scene3D.add(b);world3D.push({mesh:b,z,building:true})}
-function create3D(){if(!THREE||renderer3D||!canvas)return;const stage=canvas.parentElement;scene3D=new THREE.Scene();scene3D.background=new THREE.Color(0x9695a2);scene3D.fog=new THREE.FogExp2(0x85818b,.012);camera3D=new THREE.PerspectiveCamera(58,1,.1,240);camera3D.position.set(0,5.2,10.8);camera3D.lookAt(0,1.1,-5);renderer3D=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer3D.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer3D.shadowMap.enabled=true;renderer3D.shadowMap.type=THREE.PCFSoftShadowMap;renderer3D.outputColorSpace=THREE.SRGBColorSpace;renderer3D.toneMapping=THREE.ACESFilmicToneMapping;renderer3D.toneMappingExposure=1.12;renderer3D.domElement.className='ndg-three-canvas';stage.appendChild(renderer3D.domElement);
-scene3D.add(new THREE.HemisphereLight(0xb9d8ff,0x25150b,2.0));const sun=new THREE.DirectionalLight(0xffd39a,3.3);sun.position.set(-9,18,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene3D.add(sun);const neon=new THREE.PointLight(0xffa51c,22,34);neon.position.set(0,5,-13);scene3D.add(neon);
-box3(scene3D,200,.2,240,mat(0x25262b),0,-.22,-70);box3(scene3D,10,.16,220,mat(0x25262b,.55,.25),0,-.08,-70);box3(scene3D,.22,.025,220,mat(0xffbd30,.35,.25,0x995000),-5,-.01,-70);box3(scene3D,.22,.025,220,mat(0xffbd30,.35,.25,0x995000),5,-.01,-70);
-for(let z=6;z>-150;z-=8){for(const x of [-1.67,1.67]){const mark=box3(scene3D,.075,.025,3.1,mat(0xe8e4d7,.4),x,-.01,z);roadMarks.push(mark)}for(const side of [-1,1]){const w=4+Math.random()*5,h=7+Math.random()*24;addBuilding(side*(8+w/2),z,w,h,6+Math.random()*7,[0x25252c,0x343039,0x292f38,0x3a302b][Math.floor(Math.random()*4)])}}
-// Landmark restaurant with giant illuminated ND BURGS sign
-const shop=new THREE.Group();box3(shop,9,3.5,3,mat(0x171619,.45,.35),0,1.75,-23);box3(shop,8.4,.18,3.2,mat(0xffb51b,.28,.25,0xff8700),0,3.55,-23);box3(shop,5.2,1.1,.18,mat(0x09090b,.3,.3),0,2.55,-21.42);box3(shop,3.8,.16,.08,mat(0xffc32d,.25,.2,0xff8a00),0,2.85,-21.3);scene3D.add(shop);const signCanvas=document.createElement('canvas');signCanvas.width=512;signCanvas.height=128;const sc=signCanvas.getContext('2d');sc.fillStyle='#0b0b0e';sc.fillRect(0,0,512,128);sc.strokeStyle='#ffb51b';sc.lineWidth=8;sc.strokeRect(5,5,502,118);sc.fillStyle='#ffd24c';sc.font='900 70px Arial';sc.textAlign='center';sc.fillText('ND BURGS',256,88);const signTex=new THREE.CanvasTexture(signCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(4.9,1.12),new THREE.MeshBasicMaterial({map:signTex}));sign.position.set(0,2.56,-21.29);scene3D.add(sign);
-player3D=makePlayer();player3D.position.set(0,0,3.6);resize3D();draw(performance.now())}
-function resize3D(){if(!renderer3D||!canvas)return;const r=canvas.parentElement.getBoundingClientRect();renderer3D.setSize(Math.max(320,r.width),Math.max(300,r.height),false);camera3D.aspect=Math.max(320,r.width)/Math.max(300,r.height);camera3D.updateProjectionMatrix()}
-function update3D(t){if(!renderer3D)return;const dt=Math.min(.05,(t-(last3D||t))/1000);last3D=t;const target=(lane-1)*3.05;player3D.position.x+=(target-player3D.position.x)*Math.min(1,dt*10);const lift=playerY>0?Math.sin(playerY*Math.PI)*1.7:0;player3D.position.y=lift;player3D.rotation.z+=( -(target-player3D.position.x)*.04-player3D.rotation.z)*.15;player3D.userData.head.rotation.y=Math.sin(t*.001)*.04;if(running){player3D.position.y+=Math.sin(t*.018)*.035;player3D.children[2].rotation.x=Math.sin(t*.02)*.35;player3D.children[3].rotation.x=-Math.sin(t*.02)*.35;roadMarks.forEach(m=>{m.position.z+=speed*.9;if(m.position.z>9)m.position.z=-150});world3D.forEach(w=>{w.mesh.position.z+=speed*.65;if(w.mesh.position.z>12)w.mesh.position.z=-150-Math.random()*15})}
-for(const [o,m] of obj3D){if(!objects.includes(o)){scene3D.remove(m);obj3D.delete(o);continue}m.position.z=3.6-o.z*34;m.position.x=(o.lane-1)*3.05;if(o.type==='burger'){m.rotation.y=t*.0025;m.position.y=1.05+Math.sin(t*.004+o.z*5)*.18}else{m.position.y=o.type==='train'?.8:.55;m.rotation.y=o.type==='train'?0:Math.sin(t*.001)*.02}}
-objects.forEach(o=>{if(obj3D.has(o))return;let g=new THREE.Group();if(o.type==='burger'){const bun=new THREE.Mesh(new THREE.SphereGeometry(.43,20,14),mat(0xffc45a,.3,.25,0xff9800));bun.scale.y=.48;g.add(bun);const lettuce=new THREE.Mesh(new THREE.TorusGeometry(.36,.09,8,20),mat(0x42d75d));lettuce.position.y=-.03;g.add(lettuce);const coin=new THREE.Mesh(new THREE.TorusGeometry(.58,.045,8,24),mat(0xffd34e,.25,.5,0xffb000));g.add(coin)}else if(o.type==='barrier'){box3(g,1.6,.9,.45,mat(0xff642b,.5,.15),0,.48,0);for(let x=-.5;x<=.5;x+=1)box3(g,.35,.95,.47,mat(0xf7e7c7),x,.48,-.02)}else if(o.type==='crate'){box3(g,1.25,1.2,1.1,mat(0x98602d),0,.6,0);box3(g,1.3,.12,1.14,mat(0xe6ad56),0,.6,0)}else{box3(g,2.4,1.6,4,mat(0x9e1927,.3,.5),0,.9,0);box3(g,.75,.38,.04,mat(0x9be6ff,.2,.3),-.55,1.28,-2.02);box3(g,.75,.38,.04,mat(0x9be6ff,.2,.3),.55,1.28,-2.02)}scene3D.add(g);obj3D.set(o,g)});
-const ph=phaseInfo();const sky=ph.n===2?0x28203c:ph.n===3?0x42302a:ph.n===4?0x213443:ph.n===5?0x4c3020:0x8e8995;scene3D.background.setHex(sky);scene3D.fog.color.setHex(sky);camera3D.position.x=player3D.position.x*.28;camera3D.position.y=5.1+Math.sin(t*.001)*.035;camera3D.lookAt(player3D.position.x*.45,1.0,-5);renderer3D.render(scene3D,camera3D)}
-function draw(t){if(renderer3D){update3D(t);return}if(ctx){ctx.clearRect(0,0,W,H);ctx.fillStyle='#10131c';ctx.fillRect(0,0,W,H)}}
-function resize(){if(!canvas)return;const r=canvas.getBoundingClientRect();W=Math.max(320,r.width);H=Math.max(280,r.height);if(ctx){dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}resize3D();draw(performance.now())}
-function loadThree(){if(window.THREE){THREE=window.THREE;create3D();return}import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js').then(m=>{THREE=m;create3D()}).catch(()=>{const msg=document.createElement('div');msg.style.cssText='position:absolute;z-index:6;bottom:8px;left:8px;right:8px;padding:8px;background:#160c08;color:#ffd34e;font-size:12px;text-align:center';msg.textContent='O modo 3D precisa de conexão para carregar os gráficos. Recarregue esta página com a internet ativa.';canvas.parentElement.appendChild(msg)})}
 function init(){build();document.querySelectorAll('.categoria-menu,#nd18Sidebar,#nd20QuickCats,#nd15Nav').forEach(addNavButton);const obs=new MutationObserver(()=>document.querySelectorAll('.categoria-menu,#nd18Sidebar,#nd20QuickCats,#nd15Nav').forEach(addNavButton));obs.observe(document.body,{childList:true,subtree:true});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
